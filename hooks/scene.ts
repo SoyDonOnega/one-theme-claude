@@ -851,12 +851,12 @@ export function sceneSvg(): string {
   // Each piece is moved from where it was drawn (its center) and enlarged.
   o += side(true, 'top',
     `<circle cx="290" cy="${HANG_Y}" r="200" fill="url(#gWarm)" class="o-warm"/>` + place(paperLamp(), 150, 302, 290, HANG_Y, 1.5))
-  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.4))
+  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.55))
   o += side(true, 'mid', place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
   o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
   // Bottom row, right, standing: the arc lamp and its warmth, enlarged with
   // Clawd so they fill their corner.
-  o += side(false, 'bottom', `<g transform="scale(${STAND})"><circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g></g>`)
+  o += side(false, 'bottom', `<g transform="scale(${STAND})"><circle cx="${ARC_X}" cy="-176" r="154" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g></g>`)
 
   // The desk along the whole bottom, then what stands on it: the pencil cup
   // and Clawd on the right, the open shelf on the left.
