@@ -71,8 +71,8 @@ export const register: Register = on => {
     }
     if (arg === 'on' || arg === '') {
       await $.store.delete('off')
-      const set = await setTheme($)
-      return { text: set.isDrawn ? 'Tema activado.' : `Tema activado, pero aquí no se dibuja: ${set.reason}` }
+      await setTheme($)
+      return { text: 'Tema activado.' }
     }
     return { text: 'Prueba /caballero-nubes off o /caballero-nubes on.' }
   })
