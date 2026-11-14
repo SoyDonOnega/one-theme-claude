@@ -514,28 +514,28 @@ function knightPrint() {
   // night, and thin high cloud passing.
   o += ht(k => e(aw * 0.55, hz, 96 * k, 46 * k, 'f-print'), [[1.3, 4], [1, 3], [0.6, 2]])
   o += ht(k => c(102, 62, 10 * k, 'f-daySun'), [[1.7, 3], [1, 0]]) + ht(k => c(102, 62, 10 * k, 'f-moon'), [[1.7, 3], [1, 0]])
-  o += `<g><animateTransform attributeName="transform" type="translate" values="0 0;12 0;0 0" ${loop(80)}/>${d(3, e(30, 30, 46, 4, 'f-cloud') + e(110, 42, 34, 3, 'f-cloud'))}</g>`
+  o += `<g><animateTransform attributeName="transform" type="translate" values="0 0;30 0;0 0" ${loop(30)}/>${d(3, e(30, 30, 46, 4, 'f-cloud') + e(110, 42, 34, 3, 'f-cloud'))}</g>`
   // Far peaks breaking through the fog.
   o += d(2, `<path d="M0 ${hz + 4}L12 ${hz - 8}L22 ${hz - 2}L38 ${hz - 22}L52 ${hz - 6}L60 ${hz + 6}H0Z" class="f-hill2"/>`)
   o += d(1, `<path d="M84 ${hz + 6}L98 ${hz - 4}L106 ${hz}L120 ${hz - 14}L${aw} ${hz - 2}V${hz + 8}H84Z" class="f-hill2"/>`)
   // The sea of clouds: rows of billows, far to near, each drifting slowly to
   // and fro, out of step with the others, brighter as they come closer.
-  const row = (y: number, rad: number, seed: number, density: number, dx: number, dur: number, from = 0, to = aw) => {
+  const row = (y: number, rad: number, seed: number, density: number, dx: number, dur: number, from = -30, to = aw + 30) => {
     let tops = ''
     for (let x = from - rad; x < to + rad; x += rad * 1.3) tops += c(Math.round(x + (nz(seed + x) - 0.5) * rad * 0.6), Math.round(y - nz(seed + 50 + x) * rad * 0.5), Math.round(rad * (0.8 + nz(seed + 90 + x) * 0.45)), 'f-cloud')
     const body = d(Math.min(4, density + 2), r(from - 20, y, to - from + 40, 60, 'f-cloudShade')) + d(density, tops)
     return `<g><animateTransform attributeName="transform" type="translate" values="0 0;${dx} 0;0 0" ${loop(dur)}/>${body}</g>`
   }
-  o += row(hz + 8, 7, 900, 3, 6, 40)
-  o += row(hz + 22, 9, 930, 2, -8, 52)
-  o += row(hz + 40, 11, 960, 1, 10, 64)
+  o += row(hz + 8, 7, 900, 3, 16, 14)
+  o += row(hz + 22, 9, 930, 2, -20, 18)
+  o += row(hz + 40, 11, 960, 1, 24, 22)
   // The crag he stands on.
   const fx = 64
   const fy = 136
   o += d(0, `<path d="M${fx - 40} ${ah}L${fx - 26} ${fy + 14}L${fx - 12} ${fy + 2}L${fx + 4} ${fy}L${fx + 18} ${fy + 6}L${fx + 30} ${fy + 22}L${fx + 44} ${ah}Z" class="f-rock"/>`)
   o += d(1, `<path d="M${fx - 26} ${fy + 14}L${fx - 12} ${fy + 2}L${fx - 4} ${fy + 4}L${fx - 16} ${fy + 26}Z" class="f-cloudShade"/>`)
   // Near fog curling round the foot of the crag.
-  o += row(ah - 14, 12, 990, 0, -6, 46, -10, fx - 30) + row(ah - 10, 12, 1020, 0, 6, 50, fx + 36, aw + 10)
+  o += row(ah - 14, 12, 990, 0, -14, 12, -30, fx - 30) + row(ah - 10, 12, 1020, 0, 14, 15, fx + 36, aw + 30)
   // The knight, from behind: legs, a cape in the wind, pauldrons, a helm with
   // its plume streaming, and his sword planted point-down at his side.
   let k = d(0, '<path d="M-9 0L-7 -30H-1V0ZM1 0V-30H7L9 0Z" class="f-knight"/>')
@@ -713,7 +713,7 @@ function paperLamp() {
   const y = 302
   const R = 52
   let o = dline(`M${x} 0V${y - R - 6}`, 's-wire', 2.4) + dotted(0, r(x - 7, y - R - 8, 14, 8, 'f-metal'))
-  o += halftone(k => c(x, y, R * k, 'f-bulb'), [[1.7, 4], [1.35, 3], [1.12, 2]])
+  o += halftone(k => c(x, y, R * k, 'f-bulb'), [[1.45, 4], [1.25, 3], [1.1, 2]])
   o += c(x, y, R, 'f-board') + halftone(k => c(x, y + 4, R * k, 'f-bulb'), [[0.85, 3], [0.55, 1]])
   let ribs = ''
   for (let i = -3; i <= 3; i++) {
@@ -850,8 +850,8 @@ export function sceneSvg(): string {
   // Middle row: the knight painting, left; the window, right, level with it.
   // Each piece is moved from where it was drawn (its center) and enlarged.
   o += side(true, 'top',
-    `<circle cx="290" cy="${HANG_Y}" r="280" fill="url(#gWarm)" class="o-warm"/>` + place(paperLamp(), 150, 302, 290, HANG_Y, 1.5))
-  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.25))
+    `<circle cx="290" cy="${HANG_Y}" r="200" fill="url(#gWarm)" class="o-warm"/>` + place(paperLamp(), 150, 302, 290, HANG_Y, 1.5))
+  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.4))
   o += side(true, 'mid', place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
   o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
   // Bottom row, right, standing: the arc lamp and its warmth, enlarged with
