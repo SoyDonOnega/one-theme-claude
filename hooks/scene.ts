@@ -790,28 +790,31 @@ function corner() {
 }
 
 // The middle of the window is the conversation's and stays empty. Each side
-// is drawn in its own frame at the window's edge, SIDE wide: at full size
-// when the frame holds SIDE_W pixels, scaled down whole when it holds fewer,
-// so nothing ever reaches into the middle. A top frame hangs from the
-// ceiling, its pieces stacked and centered; a bottom frame stands on the desk.
+// is drawn in frames at the window's edge, SIDE wide: at full size when a
+// frame holds SIDE_W pixels, scaled down whole when it holds fewer, so
+// nothing ever reaches into the middle. Each side has three rows: a top
+// frame hangs from the ceiling, a middle frame is centered on the wall above
+// the desk, and a bottom frame stands on the desk.
 const SIDE = 22
 const SIDE_W = 580
-const TOP_H = 820
-const BOTTOM_H = 470
-function side(left: boolean, top: boolean, inner: string) {
-  const h = top ? TOP_H : BOTTOM_H
-  const box = `${left ? 0 : -SIDE_W} ${top ? 0 : -h} ${SIDE_W} ${h}`
-  const align = top ? 'xMidYMin' : `${left ? 'xMin' : 'xMax'}YMax`
+const ROW_H = { top: 480, mid: 400, bottom: 470 }
+type Row = keyof typeof ROW_H
+function side(left: boolean, row: Row, inner: string) {
+  const h = ROW_H[row]
+  const box = `${left ? 0 : -SIDE_W} ${row === 'bottom' ? -h : 0} ${SIDE_W} ${h}`
+  const align = row === 'top' ? 'xMidYMin' : row === 'mid' ? 'xMidYMid' : `${left ? 'xMin' : 'xMax'}YMax`
   const frame =
     `<svg x="${left ? 0 : 100 - SIDE}%" y="0" width="${SIDE}%" height="100%" viewBox="${box}" ` +
     `preserveAspectRatio="${align} meet" overflow="visible">${inner}</svg>`
-  return top ? frame : `<g transform="translate(0 ${-DESK})">${frame}</g>`
+  // The middle row centers on the wall above the desk, the bottom row on the desk.
+  return row === 'top' ? frame : `<g transform="translate(0 ${row === 'mid' ? -DESK / 2 : -DESK})">${frame}</g>`
 }
 
-// The two rows of the hanging pieces, by their centers, the same on both
-// sides: the lantern level with the sign, the painting with the window.
-const HANG_Y = 260
-const FRAME_Y = 620
+// Where the hanging pieces hang, by their centers, the same on both sides:
+// the lantern level with the sign, low on its cord.
+const HANG_Y = 330
+// How much larger the arc lamp, Clawd and the pencil cup are drawn.
+const STAND = 1.3
 
 // Moves a piece drawn around (x0, y0) to (x, y), scaled by s.
 const place = (inner: string, x0: number, y0: number, x: number, y: number, s: number) =>
@@ -843,24 +846,23 @@ export function sceneSvg(): string {
     VEIL.map(([at, op]) => `<stop offset="${at}" class="s-mid" stop-opacity="${op}"/>`).join('') +
     `</linearGradient></defs><rect width="100%" height="100%" fill="url(#veil)"/>`
 
-  // Left, hanging: the paper lantern and its warmth over the knight painting.
-  // Right, hanging: the sign over the window. Each piece is moved from where
-  // it was drawn (its center) to its place in the stack, and enlarged.
-  o += side(true, true,
-    `<circle cx="290" cy="260" r="280" fill="url(#gWarm)" class="o-warm"/>` +
-    place(paperLamp(), 150, 302, 290, HANG_Y, 1.5) +
-    place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, FRAME_Y, 1.5))
-  o += side(false, true,
-    place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.25) +
-    place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, FRAME_Y, 1.25))
-  // Right, standing: the arc lamp and its warmth.
-  o += side(false, false, `<circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g>`)
+  // Top row: the paper lantern and its warmth, left; the sign, right.
+  // Middle row: the knight painting, left; the window, right, level with it.
+  // Each piece is moved from where it was drawn (its center) and enlarged.
+  o += side(true, 'top',
+    `<circle cx="290" cy="${HANG_Y}" r="280" fill="url(#gWarm)" class="o-warm"/>` + place(paperLamp(), 150, 302, 290, HANG_Y, 1.5))
+  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.25))
+  o += side(true, 'mid', place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
+  o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
+  // Bottom row, right, standing: the arc lamp and its warmth, enlarged with
+  // Clawd so they fill their corner.
+  o += side(false, 'bottom', `<g transform="scale(${STAND})"><circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g></g>`)
 
   // The desk along the whole bottom, then what stands on it: the pencil cup
   // and Clawd on the right, the open shelf on the left.
   o += desk()
-  o += side(false, false, `<g transform="translate(0 18)">${pencilCup()}</g>${corner()}`)
-  o += side(true, false, `<g transform="translate(0 14)">${floorShelf()}</g>`)
+  o += side(false, 'bottom', `<g transform="scale(${STAND})"><g transform="translate(0 18)">${pencilCup()}</g>${corner()}</g>`)
+  o += side(true, 'bottom', `<g transform="translate(0 14)">${floorShelf()}</g>`)
   SCENE = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><style>${BASE_STYLE}</style>${defs()}${o}</svg>`
   return SCENE
 }
