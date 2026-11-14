@@ -821,6 +821,9 @@ function corner() {
   )
 }
 
+// The veil's stops across the window's width: [offset, opacity].
+const VEIL: [number, number][] = [[0.16, 0], [0.28, 0.82], [0.74, 0.82], [0.86, 0]]
+
 let SCENE: string | undefined
 
 export function sceneSvg(): string {
@@ -855,6 +858,12 @@ export function sceneSvg(): string {
   o += at('100%', '100%', `<g transform="translate(0 ${-DESK + 18})">${pencilCup()}</g>`)
   o += corner()
   o += at('0', '100%', `<g transform="translate(0 -50)">${floorShelf()}</g>`)
+  // A veil of wall color down the middle, where the conversation's text sits,
+  // so whatever is drawn behind it stays quiet. The edges stay clear.
+  o +=
+    `<defs><linearGradient id="veil" x1="0" y1="0" x2="1" y2="0">` +
+    VEIL.map(([at, op]) => `<stop offset="${at}" class="s-mid" stop-opacity="${op}"/>`).join('') +
+    `</linearGradient></defs><rect width="100%" height="100%" fill="url(#veil)"/>`
   SCENE = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><style>${BASE_STYLE}</style>${defs()}${o}</svg>`
   return SCENE
 }
