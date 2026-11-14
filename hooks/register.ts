@@ -40,7 +40,7 @@ const { theme, problems } = makeColors({
 })
 
 // Colors and backdrop go in the same call: a later $.theme call replaces both.
-const THEME: ThemeSetArgs = { colors: theme, backdrop: { scene: SCENE, glass: { blur: 18, opacity: 0.62 } } }
+const THEME: ThemeSetArgs = { colors: theme, backdrop: { id: SCENE, glass: { blur: 18, opacity: 0.62 } } }
 
 async function setTheme($: EngineInterface) {
   const set = await $.theme.set(THEME)
@@ -82,7 +82,7 @@ export const register: Register = on => {
   // media queries but reduced motion's, and cheap enough to draw each frame.
   // Anything else it draws as a still copy. scene.ts keeps to those rules.
   on('ui.render', { component: 'Backdrop' }, async ($, e, next) => {
-    if (e.props.plugin !== $.plugin.name || e.props.scene !== SCENE) return next(e)
+    if (e.props.plugin !== $.plugin.name || e.props.id !== SCENE) return next(e)
     if (e.surface !== 'desktop' && e.surface !== 'mobile') return next(e)
     const { Svg } = $.ui.resolve(e)
     return Svg({ source: sceneSvg(), alt: SCENE_ALT })
