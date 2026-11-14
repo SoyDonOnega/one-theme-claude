@@ -796,7 +796,7 @@ function corner() {
 // ceiling, its pieces stacked and centered; a bottom frame stands on the desk.
 const SIDE = 22
 const SIDE_W = 580
-const TOP_H = 900
+const TOP_H = 820
 const BOTTOM_H = 470
 function side(left: boolean, top: boolean, inner: string) {
   const h = top ? TOP_H : BOTTOM_H
@@ -807,6 +807,11 @@ function side(left: boolean, top: boolean, inner: string) {
     `preserveAspectRatio="${align} meet" overflow="visible">${inner}</svg>`
   return top ? frame : `<g transform="translate(0 ${-DESK})">${frame}</g>`
 }
+
+// The two rows of the hanging pieces, by their centers, the same on both
+// sides: the lantern level with the sign, the painting with the window.
+const HANG_Y = 260
+const FRAME_Y = 620
 
 // Moves a piece drawn around (x0, y0) to (x, y), scaled by s.
 const place = (inner: string, x0: number, y0: number, x: number, y: number, s: number) =>
@@ -842,12 +847,12 @@ export function sceneSvg(): string {
   // Right, hanging: the sign over the window. Each piece is moved from where
   // it was drawn (its center) to its place in the stack, and enlarged.
   o += side(true, true,
-    `<circle cx="290" cy="200" r="340" fill="url(#gWarm)" class="o-warm"/>` +
-    place(paperLamp(), 150, 302, 290, 200, 2) +
-    place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 644, 2))
+    `<circle cx="290" cy="260" r="280" fill="url(#gWarm)" class="o-warm"/>` +
+    place(paperLamp(), 150, 302, 290, HANG_Y, 1.5) +
+    place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, FRAME_Y, 1.5))
   o += side(false, true,
-    place(retroSign(), SX, SY + 50, -290, 190, 1.6) +
-    place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 616, 1.6))
+    place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.25) +
+    place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, FRAME_Y, 1.25))
   // Right, standing: the arc lamp and its warmth.
   o += side(false, false, `<circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g>`)
 
