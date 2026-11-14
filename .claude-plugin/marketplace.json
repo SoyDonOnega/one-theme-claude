@@ -1,0 +1,12 @@
+{
+  "name": "one-theme-claude",
+  "owner": {
+    "name": "SoyDonOnega"
+  },
+  "plugins": [
+    {
+      "name": "caballero-nubes",
+      "source": "./"
+    }
+  ]
+}
