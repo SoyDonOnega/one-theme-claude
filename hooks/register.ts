@@ -40,10 +40,14 @@ const { theme, problems } = makeColors({
 })
 
 // Colors and backdrop go in the same call: a later $.theme call replaces both.
-const THEME: ThemeSetArgs = { colors: theme, backdrop: { id: SCENE, glass: { blur: 18, opacity: 0.62 } } }
+// Builds disagree on the backdrop's name key: most take `scene`, 2.1.321
+// (which the desktop app can fall back to) takes `id`. Try `scene`, then `id`.
+const GLASS = { blur: 18, opacity: 0.62 }
+const THEME = { colors: theme, backdrop: { scene: SCENE, glass: GLASS } } as ThemeSetArgs
+const THEME_ID = { colors: theme, backdrop: { id: SCENE, glass: GLASS } } as unknown as ThemeSetArgs
 
 async function setTheme($: EngineInterface) {
-  const set = await $.theme.set(THEME)
+  const set = await $.theme.set(THEME).catch(() => $.theme.set(THEME_ID))
   if (!set.isDrawn) $.ui.log(`caballero-nubes: the theme is set but not drawn here: ${set.reason}`, { to: 'debug' })
   return set
 }
@@ -82,7 +86,8 @@ export const register: Register = on => {
   // media queries but reduced motion's, and cheap enough to draw each frame.
   // Anything else it draws as a still copy. scene.ts keeps to those rules.
   on('ui.render', { component: 'Backdrop' }, async ($, e, next) => {
-    if (e.props.plugin !== $.plugin.name || e.props.id !== SCENE) return next(e)
+    const props = e.props as { plugin: string; scene?: string; id?: string }
+    if (props.plugin !== $.plugin.name || (props.scene ?? props.id) !== SCENE) return next(e)
     if (e.surface !== 'desktop' && e.surface !== 'mobile') return next(e)
     const { Svg } = $.ui.resolve(e)
     return Svg({ source: sceneSvg(), alt: SCENE_ALT })
