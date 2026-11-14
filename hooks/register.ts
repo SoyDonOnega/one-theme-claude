@@ -42,7 +42,7 @@ const { theme, problems } = makeColors({
 // Colors and backdrop go in the same call: a later $.theme call replaces both.
 // Builds disagree on the backdrop's name key: most take `scene`, 2.1.321
 // (which the desktop app can fall back to) takes `id`. Try `scene`, then `id`.
-const GLASS = { blur: 6, opacity: 0.45 }
+const GLASS = { blur: 0, opacity: 0.15 }
 const THEME = { colors: theme, backdrop: { scene: SCENE, glass: GLASS } } as ThemeSetArgs
 const THEME_ID = { colors: theme, backdrop: { id: SCENE, glass: GLASS } } as unknown as ThemeSetArgs
 
