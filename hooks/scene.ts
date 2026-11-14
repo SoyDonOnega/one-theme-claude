@@ -709,7 +709,7 @@ function turntable(cx: number, y: number) {
 // Along the top on both sides: a festoon of round bulbs on a cord strung
 // between two hooks, sagging a little, each bulb hanging from its socket and
 // glowing warm, a few of them flickering out of step.
-function clothesline() {
+function lights(x1: number, x2: number, n: number, seed: number) {
   const line = (x1: number, x2: number, y: number, sag: number, n: number, seed: number) => {
     let o = `<path d="M${x1} ${y}Q${(x1 + x2) / 2} ${y + sag * 2} ${x2} ${y}" class="s-wire" fill="none" stroke-width="1.8"/>`
     o += dotted(0, c(x1, y, 4, 'f-metal') + c(x2, y, 4, 'f-metal'))
@@ -724,7 +724,7 @@ function clothesline() {
     }
     return o
   }
-  return at('0', '0', line(24, 560, 40, 20, 11, 300)) + at('100%', '0', line(-640, -24, 40, 18, 12, 340))
+  return line(x1, x2, 40, 18, n, seed)
 }
 
 // Hanging from the ceiling in the far left corner: a round paper lantern,
@@ -814,15 +814,35 @@ function corner() {
   const steam = [0, 1].map(i => drift(p(29 + i, H - 9, 1, 1, 'f-puff') + p(30 - i, H - 11, 1, 1, 'f-puff'), 1, -6, 2, -i, true)).join('')
   const mug = p(27, H - 7, 5, 6, 'f-mug') + p(27, H - 5, 5, 1, '#F2A25C') + p(27, H - 7, 5, 1, '#6B4630') + p(32, H - 5, 1, 2, 'f-mug')
   return (
-    `<svg x="100%" y="100%" width="1" height="1" overflow="visible"><g class="corner" transform="translate(-440 -47) scale(6)"><g transform="translate(0 ${-H})">` +
+    `<g class="corner" transform="translate(-440 17) scale(6)"><g transform="translate(0 ${-H})">` +
     glow +
     `<g mask="url(#c0)">${sheet.body}${laptop}${mug}${steam}</g>` +
-    '</g></g></svg>'
+    '</g></g>'
   )
 }
 
-// The veil's stops across the window's width: [offset, opacity].
-const VEIL: [number, number][] = [[0.16, 0], [0.28, 0.82], [0.74, 0.82], [0.86, 0]]
+// The middle of the window is the conversation's and stays empty. Each side
+// is drawn in its own frame at the window's edge, SIDE wide: at full size
+// when the frame holds SIDE_W pixels, scaled down whole when it holds fewer,
+// so nothing ever reaches into the middle. A top frame hangs from the
+// ceiling; a bottom frame stands on the desk.
+const SIDE = 22
+const SIDE_W = 580
+const TOP_H = 400
+const BOTTOM_H = 470
+function side(left: boolean, top: boolean, inner: string) {
+  const h = top ? TOP_H : BOTTOM_H
+  const box = `${left ? 0 : -SIDE_W} ${top ? 0 : -h} ${SIDE_W} ${h}`
+  const align = `${left ? 'xMin' : 'xMax'}${top ? 'YMin' : 'YMax'}`
+  const frame =
+    `<svg x="${left ? 0 : 100 - SIDE}%" y="0" width="${SIDE}%" height="100%" viewBox="${box}" ` +
+    `preserveAspectRatio="${align} meet" overflow="visible">${inner}</svg>`
+  return top ? frame : `<g transform="translate(0 ${-DESK})">${frame}</g>`
+}
+
+// A darker column down the middle, behind the conversation, fading out
+// toward the sides: [offset, opacity].
+const VEIL: [number, number][] = [[0.19, 0], [0.24, 0.7], [0.76, 0.7], [0.81, 0]]
 
 let SCENE: string | undefined
 
@@ -840,30 +860,24 @@ export function sceneSvg(): string {
   o += wallSurface()
   // Shade on the wall above the desk, in dots that grow toward it.
   o += at('0', '100%', dotted(4, r(0, -DESK - 132, 6000, 60, 'f-shade')) + dotted(3, r(0, -DESK - 72, 6000, 72, 'f-shade')))
-  // The lamps' warmth on the wall, one each side.
-  o += `<circle cx="150" cy="302" r="240" fill="url(#gWarm)" class="o-warm"/>`
-  o += at('100%', '100%', `<circle cx="${ARC_X}" cy="-240" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/>`)
-
-  // Right: the window and radiator, the clock, the shelf over Clawd, and the
-  // arc lamp. Left: the hanging pothos, the knight painting, the open shelf.
-  o += at('100%', '0', `<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>${retroSign()}`)
-  o += at('100%', '100%', floorLamp())
-  o += clothesline()
-  o += paperLamp()
-  o += knightPrint()
-
-  // The desk, with the lamp and record player on its left, a pencil
-  // cup by the standing lamp, and Clawd on its right.
-  o += desk()
-  o += at('100%', '100%', `<g transform="translate(0 ${-DESK + 18})">${pencilCup()}</g>`)
-  o += corner()
-  o += at('0', '100%', `<g transform="translate(0 -50)">${floorShelf()}</g>`)
-  // A veil of wall color down the middle, where the conversation's text sits,
-  // so whatever is drawn behind it stays quiet. The edges stay clear.
+  // The middle, darker and empty, for the conversation.
   o +=
     `<defs><linearGradient id="veil" x1="0" y1="0" x2="1" y2="0">` +
     VEIL.map(([at, op]) => `<stop offset="${at}" class="s-mid" stop-opacity="${op}"/>`).join('') +
     `</linearGradient></defs><rect width="100%" height="100%" fill="url(#veil)"/>`
+
+  // Left, hanging: string lights, the paper lantern and its warmth, and the
+  // knight painting. Right, hanging: string lights, the sign and the window.
+  o += side(true, true, `<circle cx="150" cy="302" r="240" fill="url(#gWarm)" class="o-warm"/>` + lights(24, 470, 9, 300) + paperLamp() + knightPrint())
+  o += side(false, true, lights(-470, -24, 9, 340) + `<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>${retroSign()}`)
+  // Right, standing: the arc lamp and its warmth.
+  o += side(false, false, `<circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g>`)
+
+  // The desk along the whole bottom, then what stands on it: the pencil cup
+  // and Clawd on the right, the open shelf on the left.
+  o += desk()
+  o += side(false, false, `<g transform="translate(0 18)">${pencilCup()}</g>${corner()}`)
+  o += side(true, false, `<g transform="translate(0 14)">${floorShelf()}</g>`)
   SCENE = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><style>${BASE_STYLE}</style>${defs()}${o}</svg>`
   return SCENE
 }
