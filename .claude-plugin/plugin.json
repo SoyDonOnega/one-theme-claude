@@ -1,6 +1,6 @@
 {
   "name": "caballero-nubes",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "Tema animado para la app de escritorio de Claude: la habitación de Clawd con un cuadro de un caballero sobre un mar de nubes, una estantería abierta que sugiere qué añadir, una lámpara de arco y un reloj sunburst. Basado en rainy-window de Ishu Agrawal (MIT).",
   "homepage": "https://github.com/ishuagrawal/claude-code-themes",
   "license": "MIT",
