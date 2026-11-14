@@ -706,27 +706,6 @@ function turntable(cx: number, y: number) {
   return o + note(0) + note(1) + note(2)
 }
 
-// Along the top on both sides: a festoon of round bulbs on a cord strung
-// between two hooks, sagging a little, each bulb hanging from its socket and
-// glowing warm, a few of them flickering out of step.
-function lights(x1: number, x2: number, n: number, seed: number) {
-  const line = (x1: number, x2: number, y: number, sag: number, n: number, seed: number) => {
-    let o = `<path d="M${x1} ${y}Q${(x1 + x2) / 2} ${y + sag * 2} ${x2} ${y}" class="s-wire" fill="none" stroke-width="1.8"/>`
-    o += dotted(0, c(x1, y, 4, 'f-metal') + c(x2, y, 4, 'f-metal'))
-    for (let i = 0; i < n; i++) {
-      const t = (i + 0.5) / n
-      const px = Math.round(x1 + (x2 - x1) * t)
-      const py = Math.round(y + 4 * sag * t * (1 - t))
-      let bulb = dotted(4, c(px, py + 16, 18, 'f-bulb')) + dotted(3, c(px, py + 16, 11, 'f-bulb'))
-      bulb += c(px, py + 16, 6, 'f-bulb') + c(px - 2, py + 14, 1.8, 'f-board')
-      o += r(px - 3, py, 6, 9, 'f-vinyl')
-      o += nz(seed + i) < 0.3 ? blink(bulb, '1;1;1;.55;1;1;.7;1', 3 + (i % 3), -i * 0.6) : bulb
-    }
-    return o
-  }
-  return line(x1, x2, 40, 18, n, seed)
-}
-
 // Hanging from the ceiling in the far left corner: a round paper lantern,
 // its ribs showing, lit warm from inside, swaying a little on its cord.
 function paperLamp() {
@@ -771,22 +750,12 @@ function wallSurface() {
   )
 }
 
-// The desk along the bottom: a top the prompt box rests on, and a front of
-// drawers under it, so the box always has something beneath it. Each drawer
-// is a plain lighter front, shaded in small dots toward its bottom edge, with
-// one round brass knob, and thin dark seams between them.
+// The desk along the bottom: a top the prompt box rests on, and one long
+// drawer front under it, shaded in small dots toward its bottom edge.
 function desk() {
-  const W = 240
-  let fronts = ''
-  let shade = ''
-  let knobs = ''
-  let shine = ''
-  for (let x = 0; x < 6000; x += W) {
-    fronts += `<rect x="${x + 5}" y="${-SILL + 5}" width="${W - 10}" height="${SILL - 5}"/>`
-    shade += `<rect x="${x + 5}" y="${-12}" width="${W - 10}" height="12"/>`
-    knobs += `<circle cx="${x + W / 2}" cy="${-SILL + 15}" r="4.5"/>`
-    shine += `<circle cx="${x + W / 2 - 1.5}" cy="${-SILL + 13.5}" r="1.4"/>`
-  }
+  // One long drawer front the whole width, no knobs.
+  const fronts = `<rect x="5" y="${-SILL + 5}" width="5990" height="${SILL - 5}"/>`
+  const shade = `<rect x="5" y="-12" width="5990" height="12"/>`
   return at(
     '0',
     '100%',
@@ -796,8 +765,7 @@ function desk() {
       dline(`M3 ${-DESK + 3}H6000`, 's-deskDot', 3.6) +
       r(0, -SILL, 6000, SILL, 'f-deskFront') +
       `<g class="f-drawer">${fronts}</g>` +
-      dotted(3, `<g class="f-deskLine">${shade}</g>`) +
-      `<g class="f-lamp">${knobs}</g><g class="f-mug">${shine}</g>`,
+      dotted(3, `<g class="f-deskLine">${shade}</g>`),
   )
 }
 
@@ -825,20 +793,24 @@ function corner() {
 // is drawn in its own frame at the window's edge, SIDE wide: at full size
 // when the frame holds SIDE_W pixels, scaled down whole when it holds fewer,
 // so nothing ever reaches into the middle. A top frame hangs from the
-// ceiling; a bottom frame stands on the desk.
+// ceiling, its pieces stacked and centered; a bottom frame stands on the desk.
 const SIDE = 22
 const SIDE_W = 580
-const TOP_H = 400
+const TOP_H = 900
 const BOTTOM_H = 470
 function side(left: boolean, top: boolean, inner: string) {
   const h = top ? TOP_H : BOTTOM_H
   const box = `${left ? 0 : -SIDE_W} ${top ? 0 : -h} ${SIDE_W} ${h}`
-  const align = `${left ? 'xMin' : 'xMax'}${top ? 'YMin' : 'YMax'}`
+  const align = top ? 'xMidYMin' : `${left ? 'xMin' : 'xMax'}YMax`
   const frame =
     `<svg x="${left ? 0 : 100 - SIDE}%" y="0" width="${SIDE}%" height="100%" viewBox="${box}" ` +
     `preserveAspectRatio="${align} meet" overflow="visible">${inner}</svg>`
   return top ? frame : `<g transform="translate(0 ${-DESK})">${frame}</g>`
 }
+
+// Moves a piece drawn around (x0, y0) to (x, y), scaled by s.
+const place = (inner: string, x0: number, y0: number, x: number, y: number, s: number) =>
+  `<g transform="translate(${x} ${y}) scale(${s}) translate(${-x0} ${-y0})">${inner}</g>`
 
 // A darker column down the middle, behind the conversation, fading out
 // toward the sides: [offset, opacity].
@@ -866,10 +838,16 @@ export function sceneSvg(): string {
     VEIL.map(([at, op]) => `<stop offset="${at}" class="s-mid" stop-opacity="${op}"/>`).join('') +
     `</linearGradient></defs><rect width="100%" height="100%" fill="url(#veil)"/>`
 
-  // Left, hanging: string lights, the paper lantern and its warmth, and the
-  // knight painting. Right, hanging: string lights, the sign and the window.
-  o += side(true, true, `<circle cx="150" cy="302" r="240" fill="url(#gWarm)" class="o-warm"/>` + lights(24, 470, 9, 300) + paperLamp() + knightPrint())
-  o += side(false, true, lights(-470, -24, 9, 340) + `<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>${retroSign()}`)
+  // Left, hanging: the paper lantern and its warmth over the knight painting.
+  // Right, hanging: the sign over the window. Each piece is moved from where
+  // it was drawn (its center) to its place in the stack, and enlarged.
+  o += side(true, true,
+    `<circle cx="290" cy="200" r="340" fill="url(#gWarm)" class="o-warm"/>` +
+    place(paperLamp(), 150, 302, 290, 200, 2) +
+    place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 644, 2))
+  o += side(false, true,
+    place(retroSign(), SX, SY + 50, -290, 190, 1.6) +
+    place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 616, 1.6))
   // Right, standing: the arc lamp and its warmth.
   o += side(false, false, `<circle cx="${ARC_X}" cy="-176" r="220" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g>`)
 
