@@ -53,6 +53,8 @@ const LIGHT: Record<string, string> = {
   lamp: '#F2A25C', lampOff: '#B9A58C', metal: '#4A4E8C', bulb: '#FFD38A', box: '#A9815E', vinyl: '#2A2633', label: '#F2A25C', note: '#4A4E8C',
   wire: '#7A7488', puff: '#8E8AA6', mug: '#FFFDF8', rad: '#8E97C2', sleeveA: '#E8A3A6', sleeveB: '#7D92D8', wax: '#EFC7A8', flame: '#F29A4A', guitar: '#D7894E',
   ao: '#C9B596',
+  smiski: '#CFE8B4', porcelain: '#FAF8F2', cobalt: '#2346A8', racer: '#D7262E', tire: '#1E1E22', hop: '#D9483B',
+  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378',
   cloud: '#FFFFFF', cloudShade: '#C9CFEA', rock: '#5A5470', knight: '#2E2A3C', cape: '#B4474A', brass: '#C99A4E', ghost: '#8E8AA6', board: '#FFFFFF', boardEdge: '#B8AE9E',
 }
 // Dark: the sepia palette, an old photograph by lamplight.
@@ -67,6 +69,8 @@ const DARK: Record<string, string> = {
   lamp: '#F6B25E', lampOff: '#5A4E6E', metal: '#CDB48A', bulb: '#FFC774', box: '#6A563E', vinyl: '#0D0F22', label: '#F2A25C', note: '#F3E6CB',
   wire: '#4A4570', puff: '#D9D3F0', mug: '#F4E8D8', rad: '#5A4A38', sleeveA: '#A06A88', sleeveB: '#6A6A7A', wax: '#E9DCC8', flame: '#FFB25E', guitar: '#B5703F',
   ao: '#040302',
+  smiski: '#BFDDA0', porcelain: '#ECE7DF', cobalt: '#5A78D0', racer: '#C8312E', tire: '#0E0E10', hop: '#C4473A',
+  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C',
   cloud: '#D8CCB4', cloudShade: '#6A5A44', rock: '#3A3026', knight: '#0E0B08', cape: '#8A4A3A', brass: '#E2B064', ghost: '#9C97C8', board: '#ECE7DF', boardEdge: '#4A4570',
 }
 
@@ -114,6 +118,7 @@ const PAINT = [
   'tex', 'shade', 'sky', 'hill', 'hill2', 'tree', 'sun', 'daySun', 'moon', 'star', 'rain', 'glass', 'frame', 'curtain', 'curtainDark', 'tie',
   'leaf', 'leaf2', 'pot', 'mat', 'print', 'deskTop', 'deskDot', 'deskFront', 'deskLine', 'drawer', 'lamp', 'lampOff', 'metal', 'bulb', 'box', 'vinyl',
   'label', 'note', 'wire', 'warm', 'puff', 'mug', 'rad', 'sleeveA', 'sleeveB', 'wax', 'flame', 'guitar', 'ao',
+  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink',
   'cloud', 'cloudShade', 'rock', 'knight', 'cape', 'brass', 'ghost', 'board', 'boardEdge',
 ]
 const STOPS = ['top', 'mid', 'bottom', 'winTop', 'winBot', 'cool', 'rose', 'warm', 'floor', 'bulb', 'ao']
@@ -573,8 +578,134 @@ function floorShelf() {
     o += `<path d="M${x0 + 8} ${y + 4}h${w * 0.3}q14 2 28 0h${w * 0.4}M${x0 + 30} ${y + 8}h${w * 0.25}q10 -2 20 0h${w * 0.5}" class="s-curtainDark" stroke-width="1" fill="none" opacity=".7"/>`
     o += dotted(3, r(x0 + 4, y + 14, w - 8, 6, 'f-deskLine'))
   }
-  o += books(f1 + 18, f2 - 18, boards[0] as number, 0) + turntable(x0 + w / 2, boards[1] as number) + vinylRow(f1 + 18, f2 - 18, boards[2] as number) + books(f1 + 18, f2 - 18, boards[3] as number, 1)
+  o += books(f1 + 18, f2 - 18, boards[0] as number, 0) + turntable(x0 + w / 2, boards[1] as number) + vinylRow(f1 + 18, f2 - 18, boards[2] as number) + lectern(x0 + w / 2, boards[3] as number)
   o += shelfSides((x0 + f1 - 18) / 2, (f2 + 18 + x0 + w) / 2, boards)
+  return o
+}
+
+// The finer grid the shelf's small things are printed in.
+const FINE = 3
+const fine = (density: number, inner: string) => dotted(density, inner, FINE)
+
+// An open book on a lectern, seen from the front: a wide book, its two pages
+// landscape, and every few seconds a page turns from right to left.
+function lectern(cx: number, y: number) {
+  const ledge = y - 46
+  const ph = 50
+  const pw = 78
+  const top = ledge - ph
+  let o = fine(0, r(cx - 32, y - 6, 64, 6, 'f-box') + r(cx - 5, ledge, 10, 40, 'f-box'))
+  o += fine(0, r(cx - pw - 6, top - 3, pw * 2 + 12, ph + 6, 'f-cape'))
+  const lines = (x: number) => {
+    let l = ''
+    for (let k = 0; k < 6; k++) l += r(x + 8, top + 8 + k * 7, pw - 18 - (k === 5 ? 24 : 0), 2, 'f-ink')
+    return l
+  }
+  const page = (x: number) => fine(0, r(x, top, pw, ph, 'f-page')) + fine(1, lines(x))
+  o += page(cx - pw - 1) + page(cx + 1)
+  o += fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
+  o += fine(0, r(cx - pw - 10, ledge, pw * 2 + 20, 6, 'f-box'))
+  // The turning page: the right page, folded over the spine. It waits, then
+  // swings across; at the loop's end the next page lies under it.
+  // It is a shade grainier than the pages under it, with a shadowed outer
+  // edge, so it shows as it crosses them.
+  const leaf = fine(1, r(cx + 1, top, pw, ph, 'f-page')) + fine(1, lines(cx + 1)) + fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
+  const turning = `<g transform="translate(${-cx} 0)">${leaf}</g>`
+  o += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
+  return o
+}
+
+// A Sargadelos figure: a seated figure in white porcelain, its body banded
+// in cobalt blue lines, zigzags and dots.
+function sargadelos(cx: number, y: number) {
+  let o = fine(0, e(cx, y - 4, 20, 4, 'f-porcelain'))
+  o += fine(0, `<path d="M${cx - 18} ${y - 4}Q${cx - 20} ${y - 40} ${cx - 10} ${y - 54}H${cx + 10}Q${cx + 20} ${y - 40} ${cx + 18} ${y - 4}Z" class="f-porcelain"/>`)
+  o += fine(0, c(cx, y - 66, 11, 'f-porcelain'))
+  o += fine(0, `<path d="M${cx - 11} ${y - 68}Q${cx} ${y - 84} ${cx + 11} ${y - 68}Q${cx} ${y - 74} ${cx - 11} ${y - 68}Z" class="f-cobalt"/>`)
+  o += r(cx - 16, y - 12, 32, 2.4, 'f-cobalt') + r(cx - 13, y - 42, 26, 2.4, 'f-cobalt')
+  o += `<path d="M${cx - 15} ${y - 22}l5 -7l5 7l5 -7l5 7l5 -7l5 7" class="s-cobalt" stroke-width="2" fill="none" stroke-linejoin="round"/>`
+  o += [-8, 0, 8].map(dx => c(cx + dx, y - 34, 1.6, 'f-cobalt')).join('')
+  o += c(cx - 4, y - 65, 1.3, 'f-cobalt') + c(cx + 4, y - 65, 1.3, 'f-cobalt')
+  return o
+}
+
+// Smiskis: small pale-green figures with blank round faces, each in a pose,
+// glowing faintly.
+function smiskis(cx: number, y: number) {
+  const fig = (x: number, pose: number) => {
+    let f = ''
+    if (pose === 0) {
+      // Standing, arms up.
+      f += r(x - 4, y - 16, 8, 10, 'f-smiski') + r(x - 4, y - 6, 3, 6, 'f-smiski') + r(x + 1, y - 6, 3, 6, 'f-smiski')
+      f += `<path d="M${x - 4} ${y - 14}L${x - 9} ${y - 24}M${x + 4} ${y - 14}L${x + 9} ${y - 24}" class="s-smiski" stroke-width="3" stroke-linecap="round"/>`
+      f += e(x, y - 22, 6.5, 6, 'f-smiski')
+    } else if (pose === 1) {
+      // Sitting, hugging its knees.
+      f += e(x, y - 7, 8, 7, 'f-smiski') + c(x + 5, y - 9, 4, 'f-smiski') + e(x - 1, y - 19, 6.5, 6, 'f-smiski')
+    } else if (pose === 2) {
+      // Hands on its head.
+      f += r(x - 4, y - 14, 8, 8, 'f-smiski') + r(x - 4, y - 6, 3, 6, 'f-smiski') + r(x + 1, y - 6, 3, 6, 'f-smiski')
+      f += e(x, y - 20, 6.5, 6, 'f-smiski')
+      f += `<path d="M${x - 4} ${y - 13}Q${x - 11} ${y - 20} ${x - 4} ${y - 25}M${x + 4} ${y - 13}Q${x + 11} ${y - 20} ${x + 4} ${y - 25}" class="s-smiski" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    } else if (pose === 3) {
+      // Lying on its front, chin in its hands.
+      f += e(x, y - 4, 10, 4, 'f-smiski') + e(x - 9, y - 9, 6, 5.5, 'f-smiski') + `<path d="M${x + 6} ${y - 4}L${x + 12} ${y - 12}" class="s-smiski" stroke-width="3" stroke-linecap="round"/>`
+    } else {
+      // Waving.
+      f += r(x - 4, y - 16, 8, 10, 'f-smiski') + r(x - 4, y - 6, 3, 6, 'f-smiski') + r(x + 1, y - 6, 3, 6, 'f-smiski')
+      f += `<path d="M${x - 4} ${y - 13}L${x - 8} ${y - 6}M${x + 4} ${y - 14}L${x + 10} ${y - 22}" class="s-smiski" stroke-width="3" stroke-linecap="round"/>`
+      f += e(x, y - 22, 6.5, 6, 'f-smiski')
+    }
+    return f
+  }
+  let o = fine(4, e(cx, y - 12, 56, 16, 'f-smiski'))
+  o += fine(0, [-44, -22, 0, 22, 44].map((dx, i) => fig(cx + dx, i)).join(''))
+  return o
+}
+
+// A toy Formula 1 car, side on, nose to the left: red body, a driver's
+// helmet in the cockpit, wings front and back, and fat black tyres.
+function racer(cx: number, y: number) {
+  let o = fine(0, `<path d="M${cx - 44} ${y - 12}L${cx - 44} ${y - 16}L${cx - 14} ${y - 21}L${cx + 4} ${y - 26}L${cx + 28} ${y - 26}L${cx + 32} ${y - 16}L${cx + 42} ${y - 14}L${cx + 42} ${y - 10}Z" class="f-racer"/>`)
+  o += fine(0, r(cx - 50, y - 9, 16, 3, 'f-racer') + r(cx + 30, y - 40, 16, 5, 'f-racer') + r(cx + 36, y - 36, 3, 12, 'f-tire'))
+  o += fine(0, c(cx + 10, y - 30, 6, 'f-lamp')) + `<path d="M${cx + 2} ${y - 32}Q${cx + 12} ${y - 40} ${cx + 20} ${y - 30}" class="s-tire" stroke-width="2" fill="none"/>`
+  o += r(cx - 20, y - 20, 18, 2, 'f-porcelain')
+  for (const [dx, rad] of [[-28, 10], [26, 11]] as [number, number][]) {
+    o += fine(0, c(cx + dx, y - rad, rad, 'f-tire')) + c(cx + dx, y - rad, rad * 0.35, 'f-metal')
+  }
+  return o
+}
+
+// A Hoptimist Bimble: a round head with smiling eyes on a bell of a body,
+// standing on a spring that sets it bobbing.
+function hoptimist(cx: number, y: number) {
+  let o = fine(0, `<path d="M${cx - 15} ${y}Q${cx - 15} ${y - 10} ${cx} ${y - 10}Q${cx + 15} ${y - 10} ${cx + 15} ${y}Z" class="f-hop"/>`)
+  let spring = `M${cx} ${y - 10}`
+  for (let k = 0; k < 4; k++) spring += `l${k % 2 ? -6 : 6} -3l${k % 2 ? 6 : -6} -3`
+  o += `<path d="${spring}" class="s-metal" stroke-width="1.6" fill="none"/>`
+  let body = fine(0, `<path d="M${cx - 17} ${y - 34}Q${cx - 15} ${y - 58} ${cx} ${y - 60}Q${cx + 15} ${y - 58} ${cx + 17} ${y - 34}Z" class="f-hop"/>`)
+  body += fine(0, c(cx, y - 76, 15, 'f-hop'))
+  body += `<path d="M${cx - 9} ${y - 76}q3 -4 6 0M${cx + 3} ${y - 76}q3 -4 6 0" class="s-knight" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+  o += `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 1;0 -3;0 0;0 0;0 0" ${loop(2.4)}/>${body}</g>`
+  return o
+}
+
+// A photo-booth strip of a couple, four black-and-white shots one under
+// another, in a red frame standing on the board.
+function photoStrip(cx: number, y: number) {
+  let o = fine(0, r(cx - 19, y - 88, 38, 88, 'f-frameRed'))
+  o += fine(0, r(cx - 14, y - 83, 28, 78, 'f-porcelain'))
+  // Each shot: [left head dx, dy], [right head dx, dy]: side by side, leaning
+  // in, a kiss, laughing.
+  const shots: [number, number, number, number][] = [[-5, 0, 5, 0], [-4, 1, 4, -1], [-3, 0, 3, 0], [-6, -1, 6, 1]]
+  shots.forEach(([lx, ly, rx, ry], i) => {
+    const py = y - 81 + i * 19
+    o += r(cx - 12, py, 24, 17, 'f-photoMid')
+    for (const [dx, dy] of [[lx, ly], [rx, ry]] as [number, number][]) {
+      o += e(cx + dx, py + 16, 5, 3.4, 'f-photoDark')
+      o += c(cx + dx, py + 8 + dy, 3.4, 'f-photoLight') + `<path d="M${cx + dx - 3.6} ${py + 7 + dy}a3.6 3.6 0 0 1 7.2 0z" class="f-photoDark"/>`
+    }
+  })
   return o
 }
 
@@ -609,10 +740,8 @@ function vinylRow(a: number, b: number, y: number) {
 function shelfSides(lx: number, rx: number, boards: number[]) {
   const [b1, b2, b3, b4] = boards as [number, number, number, number]
   let o = ''
-  // Bottom left: a leafy plant in a tall pot.
-  o += dotted(0, `<path d="M${lx - 20} ${b1 - 34}h40l-6 34h-28z" class="f-pot"/>`) + dotted(2, r(lx - 20, b1 - 38, 40, 6, 'f-pot'))
-  o += dotted(0, [[-18, -52, 13], [12, -58, 14], [-4, -72, 12], [22, -44, 10], [-24, -40, 9]].map(([dx, dy, rad]) => c(lx + (dx as number), b1 + (dy as number), rad as number, 'f-leaf')).join(''))
-  o += dotted(1, [[4, -50, 9], [-14, -64, 8], [16, -70, 7]].map(([dx, dy, rad]) => c(lx + (dx as number), b1 + (dy as number), rad as number, 'f-leaf2')).join(''))
+  // Bottom left, under Cartman: a photo-booth strip in a red frame.
+  o += photoStrip(lx, b1)
   // Bottom right: a bowl of ramen, under the coffee machine: noodles, a
   // halved egg, nori and chopsticks across the rim, steam rising.
   o += dotted(0, `<path d="M${rx - 30} ${b1 - 30}c0 12 6 24 16 28h28c10 -4 16 -16 16 -28z" class="f-cape"/>`) + dotted(0, r(rx - 10, b1 - 4, 20, 4, 'f-cape'))
@@ -640,21 +769,14 @@ function shelfSides(lx: number, rx: number, boards: number[]) {
   o += dline(`M${cx - 5} ${by - 49}q5 3 10 0`, 's-knight', 1.4)
   // Second right: the espresso machine, a touch smaller to fit.
   o += `<g transform="translate(${rx} ${b2}) scale(.82) translate(${-rx} ${-b2})">${coffeeMachine(rx, b2)}</g>`
-  // Third left: a pothos spilling over the board's edge.
-  o += dotted(0, `<path d="M${lx - 16} ${b3 - 24}h32l-4 24h-24z" class="f-pot"/>`)
-  o += dotted(0, [[-10, -30, 8], [6, -32, 9], [-2, -40, 7]].map(([dx, dy, rad]) => c(lx + (dx as number), b3 + (dy as number), rad as number, 'f-leaf')).join(''))
-  o += turn(vine(lx - 22, b3 + 2, 22, -8, 91) + vine(lx + 22, b3 + 2, 18, 7, 93), [-2, 2, -2], lx, b3, 7)
-  // Third right: the knight's helm on a little stand.
-  o += dotted(0, r(rx - 18, b3 - 6, 36, 6, 'f-box'))
-  o += dotted(0, `<path d="M${rx - 14} ${b3 - 6}V${b3 - 36}Q${rx} ${b3 - 54} ${rx + 14} ${b3 - 36}V${b3 - 6}Z" class="f-metal"/>`)
-  o += dotted(0, r(rx - 11, b3 - 32, 22, 3, 'f-knight')) + dotted(0, `<path d="M${rx} ${b3 - 48}c4 -12 16 -14 24 -6c-10 0 -14 2 -20 10z" class="f-cape"/>`)
-  // Top left: a tall vase of dried branches.
-  o += dline(`M${lx} ${b4 - 40}L${lx - 18} ${b4 - 90}M${lx} ${b4 - 40}L${lx + 4} ${b4 - 98}M${lx} ${b4 - 40}L${lx + 20} ${b4 - 84}`, 's-deskLine', 2.4)
-  o += dotted(0, `<path d="M${lx - 11} ${b4}L${lx - 15} ${b4 - 26}Q${lx} ${b4 - 48} ${lx + 15} ${b4 - 26}L${lx + 11} ${b4}Z" class="f-sleeveB"/>`)
-  // Top right: a little globe on its stand.
-  o += dotted(0, r(rx - 12, b4 - 6, 24, 6, 'f-brass')) + dline(`M${rx} ${b4 - 6}V${b4 - 16}`, 's-brass', 3)
-  o += halftone(k => c(rx, b4 - 40, 22 * k, 'f-sky'), [[1.1, 2], [1, 0]]) + dotted(1, `<path d="M${rx - 12} ${b4 - 50}q10 -6 16 4q6 8 -4 14q-10 2 -12 -8z" class="f-leaf"/>`)
-  o += `<path d="M${rx - 26} ${b4 - 40}A26 26 0 0 1 ${rx + 26} ${b4 - 40}" class="s-brass" fill="none" stroke-width="2.4"/>`
+  // Third left, over Cartman: a row of Smiskis, each in its own pose.
+  o += smiskis(lx, b3)
+  // Third right, over the coffee machine: a toy Formula 1 car.
+  o += racer(rx, b3)
+  // Top left: a Sargadelos porcelain figure, white with cobalt blue.
+  o += sargadelos(lx, b4)
+  // Top right: a Hoptimist Bimble that bobs on its spring.
+  o += hoptimist(rx, b4)
   return o
 }
 
