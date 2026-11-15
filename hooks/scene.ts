@@ -20,6 +20,22 @@
 
 import { clawdSheet } from './clawd/sheet'
 
+// What a person's room changes, all optional: left out, a piece is drawn as
+// in the onega room. `painting` and each of the twelve `shelf` slots are SVG
+// shapes drawn in the room's dots (see room.ts for what they may hold).
+export const LAMPS = ['paper', 'retro', 'design', 'chandelier', 'tiffany'] as const
+export const WEATHERS = ['rain', 'sun', 'snow', 'stars', 'sunset'] as const
+export type Room = {
+  lamp?: (typeof LAMPS)[number]
+  window?: (typeof WEATHERS)[number]
+  motto?: string[]
+  painting?: string
+  shelf?: (string | null)[]
+}
+// Each custom piece is drawn in a box of its own, in its own units: a side
+// slot of the shelf, a middle one, the painting's picture.
+export const SLOT_BOX = { side: [100, 100], middle: [180, 100], painting: [140, 192] } as const
+
 // The prompt box's bottom edge sits about this far above the window's bottom,
 // and the desk's top this far.
 const SILL = 31
@@ -121,6 +137,7 @@ const PAINT = [
   'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'sakura', 'fuji',
   'cloud', 'cloudShade', 'rock', 'knight', 'cape', 'brass', 'ghost', 'board', 'boardEdge',
 ]
+export const PAINT_NAMES: readonly string[] = PAINT
 const STOPS = ['top', 'mid', 'bottom', 'winTop', 'winBot', 'cool', 'rose', 'warm', 'floor', 'bulb', 'ao']
 
 // Everything that moves is SMIL, SVG's own animation elements: the desktop
@@ -253,10 +270,24 @@ function defs() {
 
 // The view through the window: a halftone sky, the sun or the moon and stars,
 // a cloud, hills and trees, two layers of rain and drops on the glass.
-function windowView() {
+function windowView(weather: (typeof WEATHERS)[number] = 'rain') {
   let v = r(GX, GY, GW, GH, '', 'fill="url(#winSky)"')
   v += dotted(2, r(GX, GY, GW, 36, 'f-sky')) + dotted(3, r(GX, GY + 36, GW, 42, 'f-sky')) + dotted(4, r(GX, GY + 78, GW, 48, 'f-sky'))
+  // The weather: a warm sky for sun, a dusk glow for sunset, a deep one for
+  // a clear night of stars.
+  if (weather === 'sun') v += dotted(3, r(GX, GY, GW, GH, 'f-sunny'))
+  if (weather === 'sunset') v += dotted(2, r(GX, GY + 60, GW, 70, 'f-tie')) + dotted(3, r(GX, GY + 20, GW, 50, 'f-print'))
+  if (weather === 'stars') v += dotted(1, r(GX, GY, GW, GH, 'f-vinyl'))
   v += halftone(k => c(-150, 168, 18 * k, 'f-daySun'), [[1.9, 4], [1.45, 2], [1, 0]])
+  if (weather === 'sun') v += halftone(k => c(-150, 160, 20 * k, 'f-sunny'), [[2, 4], [1.5, 3], [1, 0]])
+  if (weather === 'sunset') v += halftone(k => c(-120, 236, 26 * k, 'f-flame'), [[1.8, 4], [1.4, 2], [1, 0]])
+  if (weather === 'stars') {
+    for (let i = 0; i < 16; i++) {
+      const x = GX + 8 + Math.floor(nz(640 + i) * (GW - 16))
+      const y = GY + 8 + Math.floor(nz(660 + i) * 140)
+      v += blink(c(x, y, nz(680 + i) < 0.3 ? 2 : 1.3, 'f-porcelain'), '1;.35;1', 2 + (i % 4), -(i % 5))
+    }
+  }
   let stars = ''
   for (let i = 0; i < 7; i++) {
     const x = GX + 12 + Math.floor(nz(600 + i) * (GW - 24))
@@ -274,7 +305,16 @@ function windowView() {
   v += dotted(0, [[-188, GY + 186, 9], [-176, GY + 180, 7], [-64, GY + 172, 8], [-52, GY + 178, 6]].map(([x, y, rad]) => c(x as number, y as number, rad as number, 'f-tree')).join(''))
   const fall = (id: string, h: number, s: number, op: number) =>
     drift(`<rect x="${GX}" y="${GY - h}" width="${GW}" height="${GH + h}" fill="url(#${id})" opacity="${op}"/>`, 0, h, s)
-  v += fall('rainFar', FAR, 3, 0.45) + fall('rainNear', NEAR, 1.5, 0.85)
+  if (weather === 'rain') v += fall('rainFar', FAR, 3, 0.45) + fall('rainNear', NEAR, 1.5, 0.85)
+  if (weather === 'snow') {
+    // Flakes drifting down, and snow lying on the hills.
+    v += dotted(0, `<path d="M${GX} ${GY + 172}Q-170 ${GY + 150} -136 ${GY + 162}T-72 ${GY + 156}T${GX + GW} ${GY + 166}V${GY + 176}H${GX}Z" class="f-porcelain"/>`)
+    for (let i = 0; i < 26; i++) {
+      const x = GX + 6 + Math.floor(nz(700 + i) * (GW - 12))
+      const y = GY - 20 + Math.floor(nz(730 + i) * 60)
+      v += drift(c(x, y, nz(760 + i) < 0.4 ? 2.2 : 1.5, 'f-porcelain'), (nz(790 + i) - 0.5) * 16, GH + 30, 6 + Math.round(nz(820 + i) * 6), -Math.round(nz(850 + i) * 10))
+    }
+  }
   let drops = ''
   for (let i = 0; i < 12; i++) {
     const x = GX + 8 + Math.floor(nz(500 + i) * (GW - 16))
@@ -282,7 +322,7 @@ function windowView() {
     const drop = c(x, y, nz(540 + i) < 0.35 ? 2.6 : 1.8, 'f-glass', 'opacity=".55"') + c(x - 0.7, y - 0.7, 0.8, 'f-glass')
     drops += i % 3 === 0 ? drift(drop, 0, 84, Math.round(8 + nz(560 + i) * 8), -Math.round(nz(580 + i) * 12)) : drop
   }
-  return `<g clip-path="url(#glass)">${v}${drops}</g>`
+  return `<g clip-path="url(#glass)">${v}${weather === 'rain' ? drops : ''}</g>`
 }
 
 // The window's frame, sill and a cactus on it, and the curtains.
@@ -396,12 +436,50 @@ const TUBE: Record<string, string> = {
   M: 'M0 6V0L2 3.5L4 0V6',
   N: 'M0 6V0L4 6V0',
   G: 'M4 1Q3.6 0 2 0Q0 0 0 3Q0 6 2 6Q4 6 4 4V3H2.4',
+  A: 'M0 6V2Q0 0 2 0Q4 0 4 2V6M0 3.5H4',
+  B: 'M0 6V0H2.8Q4 0 4 1.5Q4 3 2.6 3H0M2.6 3Q4 3 4 4.5Q4 6 2.8 6H0',
+  C: 'M4 .8Q3.4 0 2 0Q0 0 0 3Q0 6 2 6Q3.4 6 4 5.2',
+  D: 'M0 0V6H2Q4 6 4 3Q4 0 2 0Z',
+  F: 'M4 0H0V6M0 3H3',
+  H: 'M0 0V6M4 0V6M0 3H4',
+  J: 'M1 0H4M3 0V4.5Q3 6 1.5 6Q0 6 0 4.6',
+  L: 'M0 0V6H4',
+  O: 'M2 0Q0 0 0 3Q0 6 2 6Q4 6 4 3Q4 0 2 0Z',
+  Q: 'M2 0Q0 0 0 3Q0 6 2 6Q4 6 4 3Q4 0 2 0ZM2.6 4.4L4 6',
+  R: 'M0 6V0H3Q4 0 4 1.5Q4 3 3 3H0M2 3L4 6',
+  T: 'M0 0H4M2 0V6',
+  U: 'M0 0V4Q0 6 2 6Q4 6 4 4V0',
+  V: 'M0 0L2 6L4 0',
+  X: 'M0 0L4 6M4 0L0 6',
+  Y: 'M0 0L2 3L4 0M2 3V6',
+  Z: 'M0 0H4L0 6H4',
+  '0': 'M2 0Q0 0 0 3Q0 6 2 6Q4 6 4 3Q4 0 2 0ZM3.4 1L.6 5',
+  '1': 'M1 1L2.4 0V6M1 6H4',
+  '2': 'M0 1Q.6 0 2 0Q4 0 4 1.8Q4 3 0 6H4',
+  '3': 'M0 .6Q.8 0 2 0Q4 0 4 1.5Q4 3 2 3Q4 3 4 4.5Q4 6 2 6Q.8 6 0 5.4M1.4 3H2',
+  '4': 'M3 6V0L0 4H4',
+  '5': 'M4 0H.4L0 2.8Q.8 2.4 2 2.4Q4 2.4 4 4.2Q4 6 2 6Q.8 6 0 5.4',
+  '6': 'M3.6 .4Q3 0 2 0Q0 0 0 3.4V4Q0 6 2 6Q4 6 4 4.2Q4 2.6 2 2.6Q.6 2.6 0 3.6',
+  '7': 'M0 0H4L1.4 6',
+  '8': 'M2 3Q0 3 0 1.5Q0 0 2 0Q4 0 4 1.5Q4 3 2 3Q0 3 0 4.5Q0 6 2 6Q4 6 4 4.5Q4 3 2 3Z',
+  '9': 'M.4 5.6Q1 6 2 6Q4 6 4 2.6V2Q4 0 2 0Q0 0 0 1.8Q0 3.4 2 3.4Q3.4 3.4 4 2.4',
+  '!': 'M2 0V4M2 5.8V6',
+  '?': 'M0 1Q.6 0 2 0Q4 0 4 1.6Q4 2.8 2 3.4V4.2M2 5.8V6',
+  '.': 'M2 5.8V6',
+  ',': 'M2 5.4L1.4 6.6',
+  "'": 'M2 0V1.6',
+  '-': 'M.6 3H3.4',
+  '&': 'M4 6L.6 1.6Q.4 0 1.8 0Q3 0 3 1.2Q3 2.4 .6 4Q0 6 2 6Q3.4 6 4 4',
+  ' ': '',
 }
+// The characters a motto can use: the tube alphabet's.
+export const MOTTO_CHARS = Object.keys(TUBE)
 // A word in tubes, centred on cx, its top at y, each unit `u` px: a dark
 // outline under a light tube with a fine highlight, like the neon-look metal
 // letters on old signs.
-function tubeWord(word: string, cx: number, y: number, u: number, tube: string, edge: string, tilt = 0) {
+function tubeWord(word: string, cx: number, y: number, size: number, tube: string, edge: string, tilt = 0, maxWidth = Infinity) {
   const adv = 5.6
+  const u = Math.min(size, maxWidth / Math.max(1, word.length * adv - 1.6))
   const total = (word.length * adv - 1.6) * u
   let d = ''
   ;[...word].forEach((ch, i) => {
@@ -412,7 +490,7 @@ function tubeWord(word: string, cx: number, y: number, u: number, tube: string, 
     `<g class="${cls}" fill="none" stroke-width="${(width / u).toFixed(3)}" stroke-linecap="round" stroke-linejoin="round"${extra}>${d}</g>`
   return layer(edge, u * 1.25) + layer(tube, u * 0.72) + layer('s-board', u * 0.22, ' opacity=".8"')
 }
-function retroSign() {
+function retroSign(motto: string[] = ['KEEP', 'SWIMMING']) {
   const top = SY
   // The plate: a fish, its tail to the right, its body the plate.
   const fish = `M${SX - 74} ${top + 34}C${SX - 70} ${top + 4} ${SX - 30} ${top} ${SX + 4} ${top}C${SX + 40} ${top} ${SX + 64} ${top + 16} ${SX + 72} ${top + 30}L${SX + 104} ${top + 6}L${SX + 98} ${top + 44}L${SX + 108} ${top + 82}L${SX + 70} ${top + 62}C${SX + 60} ${top + 72} ${SX + 40} ${top + 80} ${SX + 10} ${top + 80}H${SX - 74}Z`
@@ -434,8 +512,10 @@ function retroSign() {
   o += dotted(1, c(SX - 52, top + 26, 3, 'f-frame'))
   o += dline(`M${SX - bw / 2 + 18} ${by + 8}H${SX + bw / 2 - 18}`, 's-curtainDark', 2.4)
   // The words.
-  o += tubeWord('KEEP', SX - 2, top + 22, 5.4, 's-wax', 's-frame')
-  o += tubeWord('SWIMMING', SX + 2, by + 22, 4.7, 's-wax', 's-frame', -8)
+  // One line goes on the banner; two put the first on the plate.
+  const [first, second] = motto.length > 1 ? motto : ['', motto[0] ?? '']
+  if (first) o += tubeWord(first, SX - 2, top + 22, 5.4, 's-wax', 's-frame', 0, 120)
+  if (second) o += tubeWord(second, SX + 2, by + 22, 4.7, 's-wax', 's-frame', -8, 220)
   // The bulbs, glowing and flickering out of step.
   const bulbs: [number, number][] = [[SX - 60, top + 14], [SX + 2, top + 8], [SX + 54, top + 18], [SX - 64, top + 56], [SX + 46, top + 60],
     [SX - bw / 2 + 26, by + 16], [SX - bw / 2 + 30, by + bh - 16], [SX + bw / 2 - 26, by + bh - 18], [SX + bw / 2 - 44, by + 16], [SX + 6, by + bh - 8]]
@@ -503,11 +583,13 @@ const PX = 302
 const PY = GY + 68
 const PW = GW + 24
 const PH = GH + 24
-function knightPrint() {
+function knightPrint(custom?: string) {
   let o = dotted(0, `<path d="M${PX} ${PY}h${PW}v${PH}h-${PW}z M${PX + 12} ${PY + 12}v${PH - 24}h${PW - 24}v-${PH - 24}z" fill-rule="evenodd" class="f-frame"/>`)
   o += r(PX + 12, PY + 12, PW - 24, PH - 24, 'f-mat')
   const aw = PW - 52
   const ah = PH - 52
+  // A person's own picture, in place of the knight.
+  if (custom) return o + `<svg x="${PX + 26}" y="${PY + 26}" width="${aw}" height="${ah}" viewBox="0 0 ${SLOT_BOX.painting[0]} ${SLOT_BOX.painting[1]}">${dotted(0, custom, 3)}</svg>`
   // A finer print than the room's: dots every 4px.
   const P = 4
   const d = (density: number, inner: string) => dotted(density, inner, P)
@@ -556,7 +638,7 @@ function knightPrint() {
   return o
 }
 
-function floorShelf() {
+function floorShelf(shelf: (string | null)[] = []) {
   // Under the painting, standing on the desk: two metal ladder frames with
   // rungs, a cross brace low between them, and four long white boards resting
   // on the rungs and running well out past both frames. Empty for now.
@@ -578,8 +660,24 @@ function floorShelf() {
     o += `<path d="M${x0 + 8} ${y + 4}h${w * 0.3}q14 2 28 0h${w * 0.4}M${x0 + 30} ${y + 8}h${w * 0.25}q10 -2 20 0h${w * 0.5}" class="s-curtainDark" stroke-width="1" fill="none" opacity=".7"/>`
     o += dotted(3, r(x0 + 4, y + 14, w - 8, 6, 'f-deskLine'))
   }
-  o += books(f1 + 18, f2 - 18, boards[0] as number, 0) + turntable(x0 + w / 2, boards[1] as number) + vinylRow(f1 + 18, f2 - 18, boards[2] as number) + lectern(x0 + w / 2, boards[3] as number)
-  o += shelfSides((x0 + f1 - 18) / 2, (f2 + 18 + x0 + w) / 2, boards)
+  // Twelve slots, top row first, left to right: a person's own piece where
+  // they gave one, else the onega room's.
+  const lx = (x0 + f1 - 18) / 2
+  const rx = (f2 + 18 + x0 + w) / 2
+  const mx = x0 + w / 2
+  const [b1, b2, b3, b4] = boards as [number, number, number, number]
+  const rows = [b4, b3, b2, b1]
+  const middles = [() => lectern(mx, b4), () => vinylRow(f1 + 18, f2 - 18, b3), () => turntable(mx, b2), () => books(f1 + 18, f2 - 18, b1, 0)]
+  const sides = shelfSides(lx, rx, boards)
+  rows.forEach((y, row) => {
+    ;[lx, mx, rx].forEach((x, col) => {
+      const own = shelf[row * 3 + col]
+      if (own) {
+        const [bw, bh] = col === 1 ? SLOT_BOX.middle : SLOT_BOX.side
+        o += `<svg x="${x - bw / 2}" y="${y - bh}" width="${bw}" height="${bh}" viewBox="0 0 ${bw} ${bh}">${fine(0, own)}</svg>`
+      } else o += col === 1 ? (middles[row] as () => string)() : (sides[row * 2 + (col === 2 ? 1 : 0)] as string)
+    })
+  })
   return o
 }
 
@@ -781,11 +879,17 @@ function vinylRow(a: number, b: number, y: number) {
 // woven basket. Second: two candles and the espresso machine. Third: a
 // trailing pothos and the knight's helm. Top: a vase of dried branches and
 // a little globe.
-function shelfSides(lx: number, rx: number, boards: number[]) {
+function shelfSides(lx: number, rx: number, boards: number[]): string[] {
   const [b1, b2, b3, b4] = boards as [number, number, number, number]
   let o = ''
+  const piece = () => {
+    const done = o
+    o = ''
+    return done
+  }
   // Bottom left, under Cartman: a photo-booth strip in a red frame.
   o += photoStrip(lx, b1)
+  const bottomLeft = piece()
   // Bottom right: a bowl of ramen, under the coffee machine: noodles, a
   // halved egg, nori and chopsticks across the rim, steam rising.
   o += dotted(0, `<path d="M${rx - 30} ${b1 - 30}c0 12 6 24 16 28h28c10 -4 16 -16 16 -28z" class="f-cape"/>`) + dotted(0, r(rx - 10, b1 - 4, 20, 4, 'f-cape'))
@@ -796,6 +900,7 @@ function shelfSides(lx: number, rx: number, boards: number[]) {
   o += dotted(0, c(rx + 6, b1 - 33, 7, 'f-wax')) + dotted(0, c(rx + 6, b1 - 33, 3.4, 'f-flame'))
   o += dline(`M${rx - 6} ${b1 - 54}L${rx + 34} ${b1 - 30}M${rx - 2} ${b1 - 58}L${rx + 36} ${b1 - 34}`, 's-frame', 2.6)
   o += [0, 1, 2].map(i => drift(dline(`M${rx - 12 + i * 10} ${b1 - 38}q-4 -6 0 -11q4 -6 0 -11`, 's-puff', 2), 0, -12, 2.6, -i * 0.9, true)).join('')
+  const bottomRight = piece()
   // Second left: a plush Eric Cartman sitting on the board: brown trousers,
   // round red jacket, yellow mittens, a big round face and the blue beanie
   // with its yellow band and pompom.
@@ -811,17 +916,23 @@ function shelfSides(lx: number, rx: number, boards: number[]) {
   o += dotted(0, r(cx - 23, by - 70, 46, 6, 'f-lamp')) + dotted(0, c(cx, by - 88, 5, 'f-lamp'))
   o += c(cx - 6, by - 60, 4.4, 'f-board') + c(cx + 6, by - 60, 4.4, 'f-board') + c(cx - 5, by - 60, 1.4, 'f-knight') + c(cx + 5, by - 60, 1.4, 'f-knight')
   o += dline(`M${cx - 5} ${by - 49}q5 3 10 0`, 's-knight', 1.4)
+  const secondLeft = piece()
   // Second right: the espresso machine, a touch smaller to fit.
   o += `<g transform="translate(${rx} ${b2}) scale(.82) translate(${-rx} ${-b2})">${coffeeMachine(rx, b2)}</g>`
+  const secondRight = piece()
   // Third left, over Cartman: a row of Smiskis, each in its own pose.
   o += smiskis(lx, b3)
+  const thirdLeft = piece()
   // Third right, over the coffee machine: a toy Formula 1 car.
   o += racer(rx, b3)
+  const thirdRight = piece()
   // Top left: a Sargadelos porcelain figure, white with cobalt blue.
   o += sargadelos(lx, b4)
+  const topLeft = piece()
   // Top right: a Hoptimist Bimble that bobs on its spring.
   o += hoptimist(rx, b4)
-  return o
+  const topRight = piece()
+  return [topLeft, topRight, thirdLeft, thirdRight, secondLeft, secondRight, bottomLeft, bottomRight]
 }
 
 // Books on a board between the ladders (from `a` to `b`), centred: a run
@@ -890,6 +1001,65 @@ function paperLamp() {
   o += `<path d="${ribs}" class="s-boardEdge" stroke-width="1.4" fill="none" opacity=".7"/>`
   o += dotted(0, c(x, y + R - 2, 6, 'f-metal'))
   return turn(o, [-1.2, 1.2, -1.2], x, 0, 8)
+}
+
+// The other lamps, each hung from the ceiling around the same point as the
+// paper lantern, so any of them takes its place.
+function retroLamp() {
+  const x = 150
+  const y = 302
+  let o = dline(`M${x} 0V${y - 46}`, 's-wire', 2.4)
+  o += halftone(k => c(x, y + 18, 40 * k, 'f-bulb'), [[1.9, 4], [1.45, 3]])
+  o += dotted(0, `<path d="M${x - 12} ${y - 52}h24l4 12h-32z" class="f-metal"/>`)
+  o += dotted(0, `<path d="M${x - 20} ${y - 40}Q${x - 58} ${y - 30} ${x - 64} ${y + 8}H${x + 64}Q${x + 58} ${y - 30} ${x + 20} ${y - 40}Z" class="f-tie"/>`)
+  o += dotted(2, `<path d="M${x - 48} ${y - 16}Q${x} ${y - 30} ${x + 48} ${y - 16}" class="s-board" stroke-width="4" fill="none"/>`)
+  o += dotted(0, e(x, y + 10, 30, 7, 'f-bulb'))
+  return turn(o, [-1, 1, -1], x, 0, 9)
+}
+function designLamp() {
+  const x = 150
+  const y = 302
+  let o = dline(`M${x} 0V${y - 60}`, 's-wire', 2.4)
+  o += halftone(k => c(x, y + 10, 46 * k, 'f-bulb'), [[1.8, 4], [1.4, 3]])
+  const shade = (w: number, sy: number, h: number) => `<path d="M${x - w * 0.3} ${sy}Q${x - w * 0.5} ${sy + h * 0.4} ${x - w} ${sy + h}H${x + w}Q${x + w * 0.5} ${sy + h * 0.4} ${x + w * 0.3} ${sy}Z" class="f-board"/>`
+  o += dotted(0, shade(26, y - 60, 22) + shade(46, y - 34, 22) + shade(66, y - 8, 20))
+  o += `<path d="M${x - 66} ${y + 12}H${x + 66}M${x - 46} ${y - 12}H${x + 46}M${x - 26} ${y - 38}H${x + 26}" class="s-brass" stroke-width="2"/>`
+  o += dotted(0, c(x, y + 4, 9, 'f-bulb'))
+  return turn(o, [-1, 1, -1], x, 0, 10)
+}
+function chandelier() {
+  const x = 150
+  const y = 302
+  let o = dline(`M${x} 0V${y - 40}`, 's-brass', 3)
+  o += halftone(k => c(x, y - 16, 56 * k, 'f-bulb'), [[1.7, 4], [1.3, 3]])
+  o += dotted(0, e(x, y - 30, 8, 14, 'f-brass') + e(x, y + 6, 12, 7, 'f-brass'))
+  const arms = [-60, -30, 0, 30, 60]
+  o += arms.map(dx => `<path d="M${x} ${y}Q${x + dx * 0.6} ${y + 18} ${x + dx} ${y - 4}" class="s-brass" stroke-width="3" fill="none"/>`).join('')
+  arms.forEach((dx, i) => {
+    o += dotted(0, r(x + dx - 4, y - 22, 8, 18, 'f-wax'))
+    o += blink(dotted(0, e(x + dx, y - 28, 3.4, 6, 'f-flame')), '1;.6;1;.8', 1.2 + (i % 3) * 0.3, -i * 0.4)
+  })
+  return o
+}
+function tiffanyLamp() {
+  const x = 150
+  const y = 302
+  let o = dline(`M${x} 0V${y - 54}`, 's-wire', 2.4)
+  o += halftone(k => c(x, y + 18, 44 * k, 'f-bulb'), [[1.8, 4], [1.4, 3]])
+  const dome = `M${x - 70} ${y + 10}Q${x - 62} ${y - 50} ${x} ${y - 56}Q${x + 62} ${y - 50} ${x + 70} ${y + 10}Z`
+  o += dotted(0, `<path d="${dome}" class="f-curtainDark"/>`)
+  const panes = [['f-racer', -56, -14], ['f-sunny', -30, -30], ['f-leaf', 0, -36], ['f-sunny', 30, -30], ['f-racer', 56, -14], ['f-fuji', -44, 2], ['f-leaf', -14, -8], ['f-leaf', 14, -8], ['f-fuji', 44, 2]] as const
+  o += dotted(0, panes.map(([cls, dx, dy]) => e(x + dx, y + dy, 12, 9, cls)).join(''))
+  o += `<path d="${dome}" class="s-brass" stroke-width="2.4" fill="none"/>`
+  o += dotted(0, Array.from({ length: 11 }, (_, i) => c(x - 64 + i * 12.8, y + 16, 3, 'f-brass')).join(''))
+  return turn(o, [-1, 1, -1], x, 0, 9)
+}
+const LAMP_DRAW: Record<(typeof LAMPS)[number], () => string> = {
+  paper: () => paperLamp(),
+  retro: retroLamp,
+  design: designLamp,
+  chandelier,
+  tiffany: tiffanyLamp,
 }
 
 // A trailing vine: a dotted stem curving down with small leaves on alternate
@@ -990,10 +1160,12 @@ const place = (inner: string, x0: number, y0: number, x: number, y: number, s: n
 // toward the sides: [offset, opacity].
 const VEIL: [number, number][] = [[0.19, 0], [0.24, 0.7], [0.76, 0.7], [0.81, 0]]
 
-let SCENE: string | undefined
+const SCENES = new Map<string, string>()
 
-export function sceneSvg(): string {
-  if (SCENE) return SCENE
+export function sceneSvg(room: Room = {}): string {
+  const key = JSON.stringify(room)
+  const done = SCENES.get(key)
+  if (done) return done
   let o = ''
 
   // Color first: the wall, cool light from the window, a rose glow, warmth
@@ -1016,10 +1188,10 @@ export function sceneSvg(): string {
   // Middle row: the knight painting, left; the window, right, level with it.
   // Each piece is moved from where it was drawn (its center) and enlarged.
   o += side(true, 'top',
-    `<circle cx="290" cy="${HANG_Y}" r="200" fill="url(#gWarm)" class="o-warm"/>` + place(paperLamp(), 150, 302, 290, HANG_Y, 1.5))
-  o += side(false, 'top', place(retroSign(), SX, SY + 50, -290, HANG_Y, 1.55))
-  o += side(true, 'mid', place(knightPrint(), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
-  o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView() + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
+    `<circle cx="290" cy="${HANG_Y}" r="200" fill="url(#gWarm)" class="o-warm"/>` + place(LAMP_DRAW[room.lamp ?? 'paper'](), 150, 302, 290, HANG_Y, 1.5))
+  o += side(false, 'top', place(retroSign(room.motto), SX, SY + 50, -290, HANG_Y, 1.55))
+  o += side(true, 'mid', place(knightPrint(room.painting), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
+  o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView(room.window) + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
   // Bottom row, right, standing: the arc lamp and its warmth, enlarged with
   // Clawd so they fill their corner.
   o += side(false, 'bottom', `<g transform="scale(${STAND})"><circle cx="${ARC_X}" cy="-176" r="154" fill="url(#gWarm)" class="o-warm" opacity=".8"/><g transform="translate(0 ${DESK})">${floorLamp()}</g></g>`)
@@ -1028,9 +1200,10 @@ export function sceneSvg(): string {
   // and Clawd on the right, the open shelf on the left.
   o += desk()
   o += side(false, 'bottom', `<g transform="scale(${STAND})"><g transform="translate(0 18)">${pencilCup()}</g>${corner()}</g>`)
-  o += side(true, 'bottom', `<g transform="translate(0 14)">${floorShelf()}</g>`)
-  SCENE = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><style>${BASE_STYLE}</style>${defs()}${o}</svg>`
-  return SCENE
+  o += side(true, 'bottom', `<g transform="translate(0 14)">${floorShelf(room.shelf)}</g>`)
+  const scene = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><style>${BASE_STYLE}</style>${defs()}${o}</svg>`
+  SCENES.set(key, scene)
+  return scene
 }
 
 export const SCENE_ALT = 'Clawd typing at his desk in a cozy room under a painting of a knight above a sea of clouds, rain at the window'
