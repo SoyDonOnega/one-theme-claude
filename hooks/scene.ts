@@ -54,7 +54,7 @@ const LIGHT: Record<string, string> = {
   wire: '#7A7488', puff: '#8E8AA6', mug: '#FFFDF8', rad: '#8E97C2', sleeveA: '#E8A3A6', sleeveB: '#7D92D8', wax: '#EFC7A8', flame: '#F29A4A', guitar: '#D7894E',
   ao: '#C9B596',
   smiski: '#CFE8B4', porcelain: '#FAF8F2', cobalt: '#2346A8', racer: '#D7262E', tire: '#1E1E22', hop: '#D9483B',
-  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378', sunny: '#E9B83A', fuji: '#5A6FA8',
+  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378', sunny: '#E9B83A', sakura: '#F2A7C0', fuji: '#5A6FA8',
   cloud: '#FFFFFF', cloudShade: '#C9CFEA', rock: '#5A5470', knight: '#2E2A3C', cape: '#B4474A', brass: '#C99A4E', ghost: '#8E8AA6', board: '#FFFFFF', boardEdge: '#B8AE9E',
 }
 // Dark: the sepia palette, an old photograph by lamplight.
@@ -70,7 +70,7 @@ const DARK: Record<string, string> = {
   wire: '#4A4570', puff: '#D9D3F0', mug: '#F4E8D8', rad: '#5A4A38', sleeveA: '#A06A88', sleeveB: '#6A6A7A', wax: '#E9DCC8', flame: '#FFB25E', guitar: '#B5703F',
   ao: '#040302',
   smiski: '#BFDDA0', porcelain: '#ECE7DF', cobalt: '#5A78D0', racer: '#C8312E', tire: '#0E0E10', hop: '#C4473A',
-  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C', sunny: '#D9A63A', fuji: '#6A7AB0',
+  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C', sunny: '#D9A63A', sakura: '#C98AA0', fuji: '#6A7AB0',
   cloud: '#D8CCB4', cloudShade: '#6A5A44', rock: '#3A3026', knight: '#0E0B08', cape: '#8A4A3A', brass: '#E2B064', ghost: '#9C97C8', board: '#ECE7DF', boardEdge: '#4A4570',
 }
 
@@ -118,7 +118,7 @@ const PAINT = [
   'tex', 'shade', 'sky', 'hill', 'hill2', 'tree', 'sun', 'daySun', 'moon', 'star', 'rain', 'glass', 'frame', 'curtain', 'curtainDark', 'tie',
   'leaf', 'leaf2', 'pot', 'mat', 'print', 'deskTop', 'deskDot', 'deskFront', 'deskLine', 'drawer', 'lamp', 'lampOff', 'metal', 'bulb', 'box', 'vinyl',
   'label', 'note', 'wire', 'warm', 'puff', 'mug', 'rad', 'sleeveA', 'sleeveB', 'wax', 'flame', 'guitar', 'ao',
-  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'fuji',
+  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'sakura', 'fuji',
   'cloud', 'cloudShade', 'rock', 'knight', 'cape', 'brass', 'ghost', 'board', 'boardEdge',
 ]
 const STOPS = ['top', 'mid', 'bottom', 'winTop', 'winBot', 'cool', 'rose', 'warm', 'floor', 'bulb', 'ao']
@@ -608,29 +608,45 @@ function lectern(cx: number, y: number) {
     [[34, 12], [42, 10], [50, 12], [54, 18], [28, 16], [46, 17]].map(([dx, dy]) => c(x + (dx as number), top + (dy as number), 2.6, 'f-porcelain')).join('') +
     `<path d="M${x + 58} ${top + 40}L${x + 64} ${top + 30}L${x + 70} ${top + 40}Z" class="f-porcelain"/>` +
     r(x + 4, top + 44, pw - 8, 3, 'f-sky')
+  // Mount Fuji under a red sun.
+  const fuji = (x: number) =>
+    c(x + 58, top + 14, 6, 'f-racer') +
+    `<path d="M${x + 8} ${top + 44}L${x + 33} ${top + 14}H${x + 43}L${x + 70} ${top + 44}Z" class="f-fuji"/>` +
+    `<path d="M${x + 26} ${top + 22}L${x + 33} ${top + 14}H${x + 43}L${x + 50} ${top + 22}L${x + 45} ${top + 20}L${x + 40} ${top + 24}L${x + 35} ${top + 20}L${x + 31} ${top + 23}Z" class="f-porcelain"/>` +
+    r(x + 4, top + 44, pw - 8, 3, 'f-leaf')
+  // A cherry branch in blossom over a pagoda.
+  const sakura = (x: number) =>
+    `<path d="M${x + 4} ${top + 8}Q${x + 30} ${top + 6} ${x + 70} ${top + 26}" class="s-knight" stroke-width="2.4" fill="none"/>` +
+    [[14, 9], [24, 6], [34, 10], [46, 13], [56, 19], [64, 24], [30, 15], [50, 8]].map(([dx, dy]) => c(x + (dx as number), top + (dy as number), 3.2, 'f-sakura')).join('') +
+    [[0, 10], [1, 16], [2, 22]].map(([i, w]) => r(x + 26 - (w as number) / 2, top + 26 + (i as number) * 6, w as number, 3, 'f-knight') + r(x + 23, top + 29 + (i as number) * 6, 6, 3, 'f-racer')).join('') +
+    r(x + 25, top + 20, 2, 6, 'f-knight') + r(x + 14, top + 44, 24, 3, 'f-knight')
   const page = (x: number, pic: (x: number) => string, density = 0) => fine(density, r(x, top, pw, ph, 'f-page')) + fine(0, pic(x))
   o += fine(0, r(cx - pw - 10, ledge, pw * 2 + 20, 6, 'f-box'))
-  // One spread and its turn: `left` and `under` are the pages that lie
-  // open, `leaf` the picture on both faces of the page that turns from right
-  // to left. The leaf waits on the right, then swings across, backed solid so
-  // nothing under it shows between its dots, its outer edge shadowed.
-  // As it passes the spine its front gives way to its back, drawn mirrored
-  // so it lands the right way round.
+  // One turn of the page, six seconds: `left` lies open on the left and
+  // `under` on the right beneath the turning page, whose `front` shows on the
+  // right until it swings across and whose `back` lands on the left. The page
+  // waits, then turns; it is backed solid so nothing under it shows between
+  // its dots, its outer edge shadowed. As it passes the spine its front gives
+  // way to its back, drawn mirrored so it lands the right way round.
   const edge = fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
   const mirrored = (inner: string) => `<g transform="translate(${2 * cx + 2 + pw} 0) scale(-1 1)">${inner}</g>`
-  const spread = (left: (x: number) => string, under: (x: number) => string, leaf: (x: number) => string) => {
-    let sp = page(cx - pw - 1, left) + page(cx + 1, under) + fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
-    const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${r(cx + 1, top, pw, ph, 'f-mat')}${page(cx + 1, leaf)}</g>`
-    const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(r(cx + 1, top, pw, ph, 'f-mat') + page(cx + 1, leaf))}</g>`
-    const turning = `<g transform="translate(${-cx} 0)">${front}${back}${edge}</g>`
-    sp += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
-    return sp
+  type Pic = (x: number) => string
+  const turn = (left: Pic, under: Pic, front: Pic, back: Pic) => {
+    let t = page(cx - pw - 1, left) + page(cx + 1, under) + fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
+    const face = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${r(cx + 1, top, pw, ph, 'f-mat')}${page(cx + 1, front)}</g>`
+    const rear = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(r(cx + 1, top, pw, ph, 'f-mat') + page(cx + 1, back))}</g>`
+    t += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/><g transform="translate(${-cx} 0)">${face}${rear}${edge}</g></g></g>`
+    return t
   }
-  // Each turn swaps the pictures, red and blue: torii | wave turns to
-  // wave | torii, which turns back to torii | wave. Two spreads take turns,
-  // one every six seconds; each ends as the other begins.
-  o += `<g><animate attributeName="opacity" values="1;0" calcMode="discrete" ${loop(12)}/>${spread(torii, torii, wave)}</g>`
-  o += `<g opacity="0"><animate attributeName="opacity" values="0;1" calcMode="discrete" ${loop(12)}/>${spread(wave, wave, torii)}</g>`
+  // Four pictures on two spreads, read round and round: torii | wave, turn,
+  // Fuji | cherry, turn, torii | wave again. Each turn ends on exactly what
+  // the next one starts from, so the loop has no seam: twelve seconds, two
+  // turns, each shown in its own six.
+  const turns = [turn(torii, sakura, wave, fuji), turn(fuji, wave, sakura, torii)]
+  turns.forEach((t, i) => {
+    const on = turns.map((_, k) => (k === i ? 1 : 0)).join(';')
+    o += `<g${i ? ' opacity="0"' : ''}><animate attributeName="opacity" values="${on}" calcMode="discrete" ${loop(6 * turns.length)}/>${t}</g>`
+  })
   return o
 }
 
