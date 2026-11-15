@@ -609,21 +609,28 @@ function lectern(cx: number, y: number) {
     `<path d="M${x + 58} ${top + 40}L${x + 64} ${top + 30}L${x + 70} ${top + 40}Z" class="f-porcelain"/>` +
     r(x + 4, top + 44, pw - 8, 3, 'f-sky')
   const page = (x: number, pic: (x: number) => string, density = 0) => fine(density, r(x, top, pw, ph, 'f-page')) + fine(0, pic(x))
-  o += page(cx - pw - 1, torii) + page(cx + 1, wave)
-  o += fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
   o += fine(0, r(cx - pw - 10, ledge, pw * 2 + 20, 6, 'f-box'))
-  // The turning page, folded over the spine: it waits, then swings across.
-  // Its paper is a shade grainier and its outer edge shadowed, so it shows
-  // as it crosses the pages under it.
-  // The book always reads torii on the left, wave on the right: the turning
-  // page carries the wave on its front and the torii on its back, swapped as
-  // it crosses the spine, the back drawn mirrored so it lands the right way.
+  // One spread and its turn: `left` and `under` are the pages that lie
+  // open, `leaf` the picture on both faces of the page that turns from right
+  // to left. The leaf waits on the right, then swings across, backed solid so
+  // nothing under it shows between its dots, its outer edge shadowed.
+  // As it passes the spine its front gives way to its back, drawn mirrored
+  // so it lands the right way round.
   const edge = fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
   const mirrored = (inner: string) => `<g transform="translate(${2 * cx + 2 + pw} 0) scale(-1 1)">${inner}</g>`
-  const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${page(cx + 1, wave, 1)}</g>`
-  const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(page(cx + 1, torii, 1))}</g>`
-  const turning = `<g transform="translate(${-cx} 0)">${front}${back}${edge}</g>`
-  o += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
+  const spread = (left: (x: number) => string, under: (x: number) => string, leaf: (x: number) => string) => {
+    let sp = page(cx - pw - 1, left) + page(cx + 1, under) + fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
+    const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${r(cx + 1, top, pw, ph, 'f-mat')}${page(cx + 1, leaf)}</g>`
+    const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(r(cx + 1, top, pw, ph, 'f-mat') + page(cx + 1, leaf))}</g>`
+    const turning = `<g transform="translate(${-cx} 0)">${front}${back}${edge}</g>`
+    sp += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
+    return sp
+  }
+  // Each turn swaps the pictures, red and blue: torii | wave turns to
+  // wave | torii, which turns back to torii | wave. Two spreads take turns,
+  // one every six seconds; each ends as the other begins.
+  o += `<g><animate attributeName="opacity" values="1;0" calcMode="discrete" ${loop(12)}/>${spread(torii, torii, wave)}</g>`
+  o += `<g opacity="0"><animate attributeName="opacity" values="0;1" calcMode="discrete" ${loop(12)}/>${spread(wave, wave, torii)}</g>`
   return o
 }
 
