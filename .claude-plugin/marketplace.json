@@ -1,0 +1,13 @@
+{
+  "name": "one-theme-claude",
+  "owner": {
+    "name": "SoyDonOnega"
+  },
+  "plugins": [
+    {
+      "name": "one-theme",
+      "source": "./plugin"
+    }
+  ],
+  "description": "one-theme: an animated room for the Claude desktop app, with rooms you make yourself."
+}
