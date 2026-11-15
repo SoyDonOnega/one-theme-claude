@@ -15,7 +15,7 @@ const ATTRS = new Set([
 ])
 // The most a piece may hold, in characters, so the whole scene stays under
 // the app's limit for a backdrop.
-export const LIMITS = { slot: 5000, painting: 12000, total: 30000 }
+export const LIMITS = { slot: 5000, sign: 8000, painting: 12000, total: 30000 }
 export const SHELF_SLOTS = 12
 export const MOTTO_LINE = 14
 
@@ -70,7 +70,7 @@ export function checkRoom(input: unknown): { room: Room } | { errors: string[] }
   const raw = input as Record<string, unknown>
   const errors: string[] = []
   const room: Room = {}
-  for (const key of Object.keys(raw)) if (!['lamp', 'window', 'motto', 'painting', 'shelf'].includes(key)) errors.push(`unknown field ${key}`)
+  for (const key of Object.keys(raw)) if (!['lamp', 'window', 'motto', 'sign', 'painting', 'shelf'].includes(key)) errors.push(`unknown field ${key}`)
   if (raw.lamp !== undefined) {
     if (LAMPS.includes(raw.lamp as never)) room.lamp = raw.lamp as Room['lamp']
     else errors.push(`lamp must be one of ${LAMPS.join(', ')}`)
@@ -93,6 +93,14 @@ export function checkRoom(input: unknown): { room: Room } | { errors: string[] }
     }
   }
   let total = 0
+  if (raw.sign !== undefined) {
+    if (typeof raw.sign !== 'string') errors.push('sign is SVG markup')
+    else {
+      errors.push(...checkPiece(raw.sign, 'sign', LIMITS.sign))
+      room.sign = raw.sign
+      total += raw.sign.length
+    }
+  }
   if (raw.painting !== undefined) {
     if (typeof raw.painting !== 'string') errors.push('painting is SVG markup')
     else {
