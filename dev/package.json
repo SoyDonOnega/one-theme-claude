@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "description": "Development checks for one-theme: visual baselines of the scene and the previews. Not shipped with the plugin.",
+  "type": "module",
+  "scripts": {
+    "visual": "playwright test visual",
+    "visual:update": "playwright test visual --update-snapshots",
+    "previews": "playwright test previews"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

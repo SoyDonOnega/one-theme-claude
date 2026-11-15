@@ -1,7 +1,11 @@
 {
   "name": "one-theme",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Tema animado para la app de escritorio de Claude: una habitación alrededor de la conversación, en semitono de puntos y paleta sepia. Trae la habitación onega y deja crear las tuyas respondiendo a unas preguntas (/one-theme:personalizar). Basado en rainy-window de Ishu Agrawal (MIT).",
+  "author": {
+    "name": "SoyDonOnega",
+    "url": "https://github.com/SoyDonOnega"
+  },
   "homepage": "https://github.com/ishuagrawal/claude-code-themes",
   "license": "MIT",
   "keywords": [

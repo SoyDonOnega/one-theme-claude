@@ -4,6 +4,10 @@ Tema animado para la pestaña Code de la app de escritorio de Claude (y la app m
 
 El tema trae la habitación **onega** y te deja crear las tuyas respondiendo a unas preguntas. Puedes tener varias y cambiar de una a otra.
 
+![La habitación onega en modo oscuro](assets/preview-dark.png)
+
+![La habitación onega en modo claro](assets/preview-light.png)
+
 ## Instalar
 
 Desde una sesión de Claude Code:
@@ -59,6 +63,17 @@ Usa un solo tema a la vez.
   - Abajo: una tira de fotomatón en un marco rojo, libros y un bol de ramen humeante.
 - **Cartel de neón "KEEP SWIMMING"** y una **ventana con lluvia de noche**.
 - **Clawd** en el escritorio bajo una lámpara de arco tipo West Wing.
+
+## Desarrollo
+
+| Qué | Dónde | Cómo se comprueba |
+| --- | --- | --- |
+| El plugin (lo único que se instala) | `plugin/` | `claude plugin validate plugin` |
+| Tests de las habitaciones y de los hooks | `plugin/tests/` | `claude plugin test plugin` |
+| Comparación visual con imágenes de referencia | `dev/visual.spec.ts`, `dev/baselines/` | `cd dev && npm install && npm run visual` |
+| Vistas previas del README y el icono | `dev/previews.spec.ts` | `npm run previews` |
+
+Las imágenes de referencia se generan en un Mac con Chrome y dependen de esa máquina. Si cambias la escena a propósito, regenéralas con `npm run visual:update`. Los cambios de cada versión están en [CHANGELOG.md](CHANGELOG.md).
 
 ## Créditos
 
