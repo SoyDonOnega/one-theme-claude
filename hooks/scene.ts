@@ -54,7 +54,7 @@ const LIGHT: Record<string, string> = {
   wire: '#7A7488', puff: '#8E8AA6', mug: '#FFFDF8', rad: '#8E97C2', sleeveA: '#E8A3A6', sleeveB: '#7D92D8', wax: '#EFC7A8', flame: '#F29A4A', guitar: '#D7894E',
   ao: '#C9B596',
   smiski: '#CFE8B4', porcelain: '#FAF8F2', cobalt: '#2346A8', racer: '#D7262E', tire: '#1E1E22', hop: '#D9483B',
-  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378', sunny: '#E9B83A', sakura: '#F2A7C0', fuji: '#5A6FA8',
+  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378', sunny: '#E9B83A', fuji: '#5A6FA8',
   cloud: '#FFFFFF', cloudShade: '#C9CFEA', rock: '#5A5470', knight: '#2E2A3C', cape: '#B4474A', brass: '#C99A4E', ghost: '#8E8AA6', board: '#FFFFFF', boardEdge: '#B8AE9E',
 }
 // Dark: the sepia palette, an old photograph by lamplight.
@@ -70,7 +70,7 @@ const DARK: Record<string, string> = {
   wire: '#4A4570', puff: '#D9D3F0', mug: '#F4E8D8', rad: '#5A4A38', sleeveA: '#A06A88', sleeveB: '#6A6A7A', wax: '#E9DCC8', flame: '#FFB25E', guitar: '#B5703F',
   ao: '#040302',
   smiski: '#BFDDA0', porcelain: '#ECE7DF', cobalt: '#5A78D0', racer: '#C8312E', tire: '#0E0E10', hop: '#C4473A',
-  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C', sunny: '#D9A63A', sakura: '#C98AA0', fuji: '#6A7AB0',
+  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C', sunny: '#D9A63A', fuji: '#6A7AB0',
   cloud: '#D8CCB4', cloudShade: '#6A5A44', rock: '#3A3026', knight: '#0E0B08', cape: '#8A4A3A', brass: '#E2B064', ghost: '#9C97C8', board: '#ECE7DF', boardEdge: '#4A4570',
 }
 
@@ -118,7 +118,7 @@ const PAINT = [
   'tex', 'shade', 'sky', 'hill', 'hill2', 'tree', 'sun', 'daySun', 'moon', 'star', 'rain', 'glass', 'frame', 'curtain', 'curtainDark', 'tie',
   'leaf', 'leaf2', 'pot', 'mat', 'print', 'deskTop', 'deskDot', 'deskFront', 'deskLine', 'drawer', 'lamp', 'lampOff', 'metal', 'bulb', 'box', 'vinyl',
   'label', 'note', 'wire', 'warm', 'puff', 'mug', 'rad', 'sleeveA', 'sleeveB', 'wax', 'flame', 'guitar', 'ao',
-  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'sakura', 'fuji',
+  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'fuji',
   'cloud', 'cloudShade', 'rock', 'knight', 'cape', 'brass', 'ghost', 'board', 'boardEdge',
 ]
 const STOPS = ['top', 'mid', 'bottom', 'winTop', 'winBot', 'cool', 'rose', 'warm', 'floor', 'bulb', 'ao']
@@ -597,23 +597,11 @@ function lectern(cx: number, y: number) {
   let o = fine(0, r(cx - 32, y - 6, 64, 6, 'f-box') + r(cx - 5, ledge, 10, 40, 'f-box'))
   o += fine(0, r(cx - pw - 6, top - 3, pw * 2 + 12, ph + 6, 'f-cape'))
   // Pixel pictures of Japan, one to a page, printed on the fine grid.
-  // Mount Fuji under a red sun.
-  const fuji = (x: number) =>
-    c(x + 58, top + 14, 6, 'f-racer') +
-    `<path d="M${x + 8} ${top + 44}L${x + 33} ${top + 14}H${x + 43}L${x + 70} ${top + 44}Z" class="f-fuji"/>` +
-    `<path d="M${x + 26} ${top + 22}L${x + 33} ${top + 14}H${x + 43}L${x + 50} ${top + 22}L${x + 45} ${top + 20}L${x + 40} ${top + 24}L${x + 35} ${top + 20}L${x + 31} ${top + 23}Z" class="f-porcelain"/>` +
-    r(x + 4, top + 44, pw - 8, 3, 'f-leaf')
   // A red torii standing in water.
   const torii = (x: number) =>
     `<path d="M${x + 10} ${top + 10}Q${x + 39} ${top + 15} ${x + 68} ${top + 10}L${x + 66} ${top + 16}H${x + 12}Z" class="f-racer"/>` +
     r(x + 18, top + 20, 42, 3, 'f-racer') + r(x + 24, top + 15, 4, 31, 'f-racer') + r(x + 50, top + 15, 4, 31, 'f-racer') +
     r(x + 4, top + 44, pw - 8, 3, 'f-sky')
-  // A cherry branch in blossom over a pagoda.
-  const sakura = (x: number) =>
-    `<path d="M${x + 4} ${top + 8}Q${x + 30} ${top + 6} ${x + 70} ${top + 26}" class="s-knight" stroke-width="2.4" fill="none"/>` +
-    [[14, 9], [24, 6], [34, 10], [46, 13], [56, 19], [64, 24], [30, 15], [50, 8]].map(([dx, dy]) => c(x + (dx as number), top + (dy as number), 3.2, 'f-sakura')).join('') +
-    [[0, 10], [1, 16], [2, 22]].map(([i, w]) => r(x + 26 - (w as number) / 2, top + 26 + (i as number) * 6, w as number, 3, 'f-knight') + r(x + 23, top + 29 + (i as number) * 6, 6, 3, 'f-racer')).join('') +
-    r(x + 25, top + 20, 2, 6, 'f-knight') + r(x + 14, top + 44, 24, 3, 'f-knight')
   // A great wave curling over, its crests white.
   const wave = (x: number) =>
     `<path d="M${x + 4} ${top + 46}Q${x + 10} ${top + 20} ${x + 34} ${top + 12}Q${x + 50} ${top + 8} ${x + 54} ${top + 20}Q${x + 44} ${top + 14} ${x + 40} ${top + 24}Q${x + 38} ${top + 36} ${x + 74} ${top + 46}Z" class="f-fuji"/>` +
@@ -621,16 +609,19 @@ function lectern(cx: number, y: number) {
     `<path d="M${x + 58} ${top + 40}L${x + 64} ${top + 30}L${x + 70} ${top + 40}Z" class="f-porcelain"/>` +
     r(x + 4, top + 44, pw - 8, 3, 'f-sky')
   const page = (x: number, pic: (x: number) => string, density = 0) => fine(density, r(x, top, pw, ph, 'f-page')) + fine(0, pic(x))
-  o += page(cx - pw - 1, fuji) + page(cx + 1, torii)
+  o += page(cx - pw - 1, torii) + page(cx + 1, wave)
   o += fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
   o += fine(0, r(cx - pw - 10, ledge, pw * 2 + 20, 6, 'f-box'))
   // The turning page, folded over the spine: it waits, then swings across.
   // Its paper is a shade grainier and its outer edge shadowed, so it shows
   // as it crosses the pages under it.
+  // The book always reads torii on the left, wave on the right: the turning
+  // page carries the wave on its front and the torii on its back, swapped as
+  // it crosses the spine, the back drawn mirrored so it lands the right way.
   const edge = fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
   const mirrored = (inner: string) => `<g transform="translate(${2 * cx + 2 + pw} 0) scale(-1 1)">${inner}</g>`
-  const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${page(cx + 1, sakura, 1)}</g>`
-  const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(page(cx + 1, wave, 1))}</g>`
+  const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${page(cx + 1, wave, 1)}</g>`
+  const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(page(cx + 1, torii, 1))}</g>`
   const turning = `<g transform="translate(${-cx} 0)">${front}${back}${edge}</g>`
   o += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
   return o
