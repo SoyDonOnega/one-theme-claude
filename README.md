@@ -29,7 +29,7 @@ Ejecuta `/one-theme:personalizar`. Claude te hace dieciséis preguntas, dibuja c
 | Lámpara | ¿Qué lámpara te gusta? Papel, retro, de diseño, araña o Tiffany |
 | Cuadro | ¿Cuál es tu cuadro favorito? |
 | Ventana | ¿Qué tiempo te gusta? Lluvia, sol, nieve, noche estrellada o atardecer |
-| Cartel | Dime un lema (una o dos líneas cortas) |
+| Cartel | Dime un lema (una o dos líneas cortas). La forma del cartel hace referencia a la frase, como el pez de KEEP SWIMMING |
 | Estantería, arriba | ¿De dónde eres? · ¿Un viaje que te marcó? · ¿Un objeto que te defina? |
 | Estantería, 2.ª | ¿Qué coleccionas? · ¿Qué música escuchas? · ¿Qué deporte sigues? |
 | Estantería, 3.ª | ¿Serie o personaje favorito? · ¿Cómo desconectas en casa? · ¿Cuál es tu bebida favorita? |

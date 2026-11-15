@@ -101,7 +101,7 @@ const TOOL_SPEC = {
       name: { type: 'string', description: 'Room name: lowercase letters, digits and hyphens, up to 32.' },
       room: {
         type: 'object',
-        description: 'lamp, window, motto (1-2 lines), painting (SVG shapes) and shelf (12 slots of SVG shapes or null), as the skill describes.',
+        description: 'lamp, window, motto (1-2 lines), sign (SVG shapes of the plate behind the motto), painting (SVG shapes) and shelf (12 slots of SVG shapes or null), as the skill describes.',
       },
     },
     required: ['action'],

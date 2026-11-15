@@ -18,7 +18,7 @@ Ask in the person's language, one at a time, and wait for each answer. Keep each
 | 1 | Lamp | Which lamp do you like? Paper lantern, retro, design, chandelier or Tiffany. | `lamp`: `paper`, `retro`, `design`, `chandelier` or `tiffany` |
 | 2 | Painting | What is your favourite painting? | `painting`: your pixel version of it |
 | 3 | Window | What weather do you like? Rain, sun, snow, a starry night or a sunset. | `window`: `rain`, `sun`, `snow`, `stars` or `sunset` |
-| 4 | Sign | Tell me a motto for the neon sign (one or two short lines). | `motto`: one or two lines |
+| 4 | Sign | Tell me a motto for the neon sign (one or two short lines). | `motto`: one or two lines, and `sign`: a plate whose shape refers to the motto |
 | 5 | Shelf, top left | Where are you from? | `shelf[0]` |
 | 6 | Shelf, top middle | Tell me about a trip that marked you. | `shelf[1]` |
 | 7 | Shelf, top right | Which object defines you? | `shelf[2]` |
@@ -34,6 +34,8 @@ Ask in the person's language, one at a time, and wait for each answer. Keep each
 
 Then ask what the room is called. Suggest the person's first name, in lowercase. The name `onega` is taken.
 
+For the sign, choose a plate shape that refers to the motto. In the `onega` room, KEEP SWIMMING hangs on a fish, after Dory in Finding Nemo. "Carpe diem" could hang on a clock, "Sigue tu estrella" on a star, "Home sweet home" on a little house. Tell the person what shape you chose.
+
 For each shelf answer, choose one object that stands for it. Examples from the `onega` room: from Galicia, a Sargadelos figure; a trip to Japan, an open book with Japanese prints; Formula 1, a toy F1 car; coffee, an espresso machine. Tell the person which object you chose for each answer before you save.
 
 ## 2. Draw each piece
@@ -45,7 +47,11 @@ Each piece is SVG markup: shapes only, no outer `<svg>`. The scene prints it in 
 - **Colour.** Paint with a class, never with `fill`. Use `class="f-<paint>"` to fill and `class="s-<paint>"` to stroke, plus `stroke-width`. For a stroke-only shape, write `fill="none"`. The paints follow the theme's light and dark palettes: `racer` (red), `frameRed`, `cape` (brick), `tie` (orange), `lamp`, `sunny` (yellow), `brass`, `leaf`, `leaf2`, `smiski` (pale green), `sky`, `fuji`, `cobalt`, `sleeveB` (blue-grey), `print` (pink), `sakura`, `porcelain` (white), `page`, `cloud`, `board`, `photoLight`, `photoMid`, `photoDark`, `metal`, `box`, `pot`, `curtain`, `knight` (near black), `tire`, `vinyl`, `ink`. Use three to six paints for each piece.
 - **Detail.** The dots are 3 units apart, so shapes smaller than about 4 units disappear. Use bold, recognisable silhouettes, like the existing pieces: a figure, a cup, a car, a book.
 - **Painting.** Fill the whole 140 × 192 box with a background first. Then draw a simplified pixel version of the painting: its composition, its main shapes and its colours.
-- **Size.** Each slot can hold up to 5,000 characters. The painting can hold up to 12,000. All custom pieces together can hold up to 30,000.
+- **Sign.** The plate is drawn in a 280 × 170 box and hangs from a nail above its top middle. The motto is drawn on top in cream neon tubes with a dark outline, so the plate must be a solid shape, in mid or dark paints, behind the text:
+  - With one line, the text spans x 20–260 and y 66–102.
+  - With two lines, the first spans x 40–240 and y 34–66, and the second spans x 20–260 and y 102–132.
+  - Add a `s-brass` edge (`stroke-width` 4–5) and a few `f-bulb` circles (radius 3–4) along the edge, as on the `onega` sign. Each line holds up to 14 letters.
+- **Size.** Each slot can hold up to 5,000 characters. The sign can hold up to 8,000. The painting can hold up to 12,000. All custom pieces together can hold up to 30,000.
 
 Example of a side slot (a mug of tea):
 
@@ -61,7 +67,7 @@ Example of a side slot (a mug of tea):
 Load the tool with ToolSearch (`select:mcp__one-theme__room`), then call it:
 
 ```json
-{ "action": "save", "name": "<room>", "room": { "lamp": "...", "window": "...", "motto": ["...", "..."], "painting": "<shapes>", "shelf": ["<shapes>", null, "..."] } }
+{ "action": "save", "name": "<room>", "room": { "lamp": "...", "window": "...", "motto": ["...", "..."], "sign": "<shapes>", "painting": "<shapes>", "shelf": ["<shapes>", null, "..."] } }
 ```
 
 `shelf` has 12 slots in the order of the table (top row first, left to right). Use `null` to keep the `onega` piece in a slot. If the tool refuses the room, it lists what to fix. Fix it and call again.

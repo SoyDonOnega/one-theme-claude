@@ -29,12 +29,13 @@ export type Room = {
   lamp?: (typeof LAMPS)[number]
   window?: (typeof WEATHERS)[number]
   motto?: string[]
+  sign?: string
   painting?: string
   shelf?: (string | null)[]
 }
 // Each custom piece is drawn in a box of its own, in its own units: a side
 // slot of the shelf, a middle one, the painting's picture.
-export const SLOT_BOX = { side: [100, 100], middle: [180, 100], painting: [140, 192] } as const
+export const SLOT_BOX = { side: [100, 100], middle: [180, 100], painting: [140, 192], sign: [280, 170] } as const
 
 // The prompt box's bottom edge sits about this far above the window's bottom,
 // and the desk's top this far.
@@ -525,6 +526,38 @@ function retroSign(motto: string[] = ['KEEP', 'SWIMMING']) {
   })
   // Smaller than drawn, scaled about the nail.
   return `<g transform="translate(${SX} ${top - 48}) scale(.7) translate(${-SX} ${-(top - 48)})">${o}</g></g>`
+}
+
+// A person's sign: a plate whose shape stands for their motto (the fish is
+// onega's, for "keep swimming"), drawn in the SLOT_BOX.sign box, and the
+// motto in tubes over it at fixed places: one line across the middle, or two,
+// the first over the second. With no plate of theirs, a plain enamel one with
+// a brass edge and bulbs round it. It hangs from the same nail as onega's.
+function mottoSign(motto: string[], plate?: string) {
+  const [bw, bh] = SLOT_BOX.sign
+  const x0 = SX - bw / 2
+  const y0 = SY - 10
+  const nail = SY - 48
+  let o = '<g>' + dline(`M${SX} ${nail}L${x0 + 40} ${y0 + 8}M${SX} ${nail}L${x0 + bw - 40} ${y0 + 8}`, 's-wire', 2.2) + dotted(0, c(SX, nail - 2, 4, 'f-metal'))
+  if (plate) o += `<svg x="${x0}" y="${y0}" width="${bw}" height="${bh}" viewBox="0 0 ${bw} ${bh}" overflow="visible">${dotted(0, plate, 4)}</svg>`
+  else {
+    const edge = `M${x0 + 28} ${y0 + 10}H${x0 + bw - 28}Q${x0 + bw - 10} ${y0 + 10} ${x0 + bw - 10} ${y0 + 28}V${y0 + bh - 28}Q${x0 + bw - 10} ${y0 + bh - 10} ${x0 + bw - 28} ${y0 + bh - 10}H${x0 + 28}Q${x0 + 10} ${y0 + bh - 10} ${x0 + 10} ${y0 + bh - 28}V${y0 + 28}Q${x0 + 10} ${y0 + 10} ${x0 + 28} ${y0 + 10}Z`
+    o += `<g transform="translate(5 6)" opacity=".35">${dotted(2, `<path d="${edge}" class="f-ao"/>`)}</g>`
+    o += dotted(1, `<path d="${edge}" class="f-curtainDark"/>`) + dotted(0, `<path d="${edge}" class="s-brass" fill="none" stroke-width="5"/>`)
+    // Five bulbs along the top edge and five along the bottom.
+    for (let i = 0; i < 10; i++) {
+      const x = x0 + 34 + ((bw - 68) * (i % 5)) / 4
+      const y = i < 5 ? y0 + 22 : y0 + bh - 22
+      const bulb = dotted(4, c(x, y, 9, 'f-bulb')) + c(x, y, 3.4, 'f-bulb')
+      o += i % 3 === 1 ? blink(bulb, '1;1;1;1;.5;1;1;1;1;1;1;1', 4 + (i % 4), -i * 0.7) : bulb
+    }
+  }
+  const [first, second] = motto
+  if (second) {
+    o += tubeWord(first ?? '', SX, y0 + 34, 5.4, 's-wax', 's-frame', 0, 200)
+    o += tubeWord(second, SX, y0 + 102, 4.7, 's-wax', 's-frame', 0, 240)
+  } else if (first) o += tubeWord(first, SX, y0 + 66, 6, 's-wax', 's-frame', 0, 240)
+  return `<g transform="translate(${SX} ${nail}) scale(.7) translate(${-SX} ${-nail})">${o}</g></g>`
 }
 
 // On the shelf over Clawd, where the teapot was: a bean-to-cup espresso
@@ -1189,7 +1222,7 @@ export function sceneSvg(room: Room = {}): string {
   // Each piece is moved from where it was drawn (its center) and enlarged.
   o += side(true, 'top',
     `<circle cx="290" cy="${HANG_Y}" r="200" fill="url(#gWarm)" class="o-warm"/>` + place(LAMP_DRAW[room.lamp ?? 'paper'](), 150, 302, 290, HANG_Y, 1.5))
-  o += side(false, 'top', place(retroSign(room.motto), SX, SY + 50, -290, HANG_Y, 1.55))
+  o += side(false, 'top', place(room.motto || room.sign ? mottoSign(room.motto ?? [], room.sign) : retroSign(), SX, SY + 50, -290, HANG_Y, 1.55))
   o += side(true, 'mid', place(knightPrint(room.painting), PX + PW / 2, PY + PH / 2, 290, 200, 1.5))
   o += side(false, 'mid', place(`<g transform="translate(${-PAD - 40} 80)">${windowView(room.window) + windowFrame()}</g>`, -190, 315, -290, 200, 1.25))
   // Bottom row, right, standing: the arc lamp and its warmth, enlarged with
