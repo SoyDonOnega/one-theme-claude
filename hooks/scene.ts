@@ -54,7 +54,7 @@ const LIGHT: Record<string, string> = {
   wire: '#7A7488', puff: '#8E8AA6', mug: '#FFFDF8', rad: '#8E97C2', sleeveA: '#E8A3A6', sleeveB: '#7D92D8', wax: '#EFC7A8', flame: '#F29A4A', guitar: '#D7894E',
   ao: '#C9B596',
   smiski: '#CFE8B4', porcelain: '#FAF8F2', cobalt: '#2346A8', racer: '#D7262E', tire: '#1E1E22', hop: '#D9483B',
-  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378',
+  photoLight: '#EDEDED', photoMid: '#8C8C8C', photoDark: '#262626', frameRed: '#C8202A', page: '#FBF7EE', ink: '#8A8378', sunny: '#E9B83A', sakura: '#F2A7C0', fuji: '#5A6FA8',
   cloud: '#FFFFFF', cloudShade: '#C9CFEA', rock: '#5A5470', knight: '#2E2A3C', cape: '#B4474A', brass: '#C99A4E', ghost: '#8E8AA6', board: '#FFFFFF', boardEdge: '#B8AE9E',
 }
 // Dark: the sepia palette, an old photograph by lamplight.
@@ -70,7 +70,7 @@ const DARK: Record<string, string> = {
   wire: '#4A4570', puff: '#D9D3F0', mug: '#F4E8D8', rad: '#5A4A38', sleeveA: '#A06A88', sleeveB: '#6A6A7A', wax: '#E9DCC8', flame: '#FFB25E', guitar: '#B5703F',
   ao: '#040302',
   smiski: '#BFDDA0', porcelain: '#ECE7DF', cobalt: '#5A78D0', racer: '#C8312E', tire: '#0E0E10', hop: '#C4473A',
-  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C',
+  photoLight: '#D6D6D6', photoMid: '#6E6E6E', photoDark: '#161616', frameRed: '#B0282C', page: '#E9E1D2', ink: '#6E675C', sunny: '#D9A63A', sakura: '#C98AA0', fuji: '#6A7AB0',
   cloud: '#D8CCB4', cloudShade: '#6A5A44', rock: '#3A3026', knight: '#0E0B08', cape: '#8A4A3A', brass: '#E2B064', ghost: '#9C97C8', board: '#ECE7DF', boardEdge: '#4A4570',
 }
 
@@ -118,7 +118,7 @@ const PAINT = [
   'tex', 'shade', 'sky', 'hill', 'hill2', 'tree', 'sun', 'daySun', 'moon', 'star', 'rain', 'glass', 'frame', 'curtain', 'curtainDark', 'tie',
   'leaf', 'leaf2', 'pot', 'mat', 'print', 'deskTop', 'deskDot', 'deskFront', 'deskLine', 'drawer', 'lamp', 'lampOff', 'metal', 'bulb', 'box', 'vinyl',
   'label', 'note', 'wire', 'warm', 'puff', 'mug', 'rad', 'sleeveA', 'sleeveB', 'wax', 'flame', 'guitar', 'ao',
-  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink',
+  'smiski', 'porcelain', 'cobalt', 'racer', 'tire', 'hop', 'photoLight', 'photoMid', 'photoDark', 'frameRed', 'page', 'ink', 'sunny', 'sakura', 'fuji',
   'cloud', 'cloudShade', 'rock', 'knight', 'cape', 'brass', 'ghost', 'board', 'boardEdge',
 ]
 const STOPS = ['top', 'mid', 'bottom', 'winTop', 'winBot', 'cool', 'rose', 'warm', 'floor', 'bulb', 'ao']
@@ -596,36 +596,66 @@ function lectern(cx: number, y: number) {
   const top = ledge - ph
   let o = fine(0, r(cx - 32, y - 6, 64, 6, 'f-box') + r(cx - 5, ledge, 10, 40, 'f-box'))
   o += fine(0, r(cx - pw - 6, top - 3, pw * 2 + 12, ph + 6, 'f-cape'))
-  const lines = (x: number) => {
-    let l = ''
-    for (let k = 0; k < 6; k++) l += r(x + 8, top + 8 + k * 7, pw - 18 - (k === 5 ? 24 : 0), 2, 'f-ink')
-    return l
-  }
-  const page = (x: number) => fine(0, r(x, top, pw, ph, 'f-page')) + fine(1, lines(x))
-  o += page(cx - pw - 1) + page(cx + 1)
+  // Pixel pictures of Japan, one to a page, printed on the fine grid.
+  // Mount Fuji under a red sun.
+  const fuji = (x: number) =>
+    c(x + 58, top + 14, 6, 'f-racer') +
+    `<path d="M${x + 8} ${top + 44}L${x + 33} ${top + 14}H${x + 43}L${x + 70} ${top + 44}Z" class="f-fuji"/>` +
+    `<path d="M${x + 26} ${top + 22}L${x + 33} ${top + 14}H${x + 43}L${x + 50} ${top + 22}L${x + 45} ${top + 20}L${x + 40} ${top + 24}L${x + 35} ${top + 20}L${x + 31} ${top + 23}Z" class="f-porcelain"/>` +
+    r(x + 4, top + 44, pw - 8, 3, 'f-leaf')
+  // A red torii standing in water.
+  const torii = (x: number) =>
+    `<path d="M${x + 10} ${top + 10}Q${x + 39} ${top + 15} ${x + 68} ${top + 10}L${x + 66} ${top + 16}H${x + 12}Z" class="f-racer"/>` +
+    r(x + 18, top + 20, 42, 3, 'f-racer') + r(x + 24, top + 15, 4, 31, 'f-racer') + r(x + 50, top + 15, 4, 31, 'f-racer') +
+    r(x + 4, top + 44, pw - 8, 3, 'f-sky')
+  // A cherry branch in blossom over a pagoda.
+  const sakura = (x: number) =>
+    `<path d="M${x + 4} ${top + 8}Q${x + 30} ${top + 6} ${x + 70} ${top + 26}" class="s-knight" stroke-width="2.4" fill="none"/>` +
+    [[14, 9], [24, 6], [34, 10], [46, 13], [56, 19], [64, 24], [30, 15], [50, 8]].map(([dx, dy]) => c(x + (dx as number), top + (dy as number), 3.2, 'f-sakura')).join('') +
+    [[0, 10], [1, 16], [2, 22]].map(([i, w]) => r(x + 26 - (w as number) / 2, top + 26 + (i as number) * 6, w as number, 3, 'f-knight') + r(x + 23, top + 29 + (i as number) * 6, 6, 3, 'f-racer')).join('') +
+    r(x + 25, top + 20, 2, 6, 'f-knight') + r(x + 14, top + 44, 24, 3, 'f-knight')
+  // A great wave curling over, its crests white.
+  const wave = (x: number) =>
+    `<path d="M${x + 4} ${top + 46}Q${x + 10} ${top + 20} ${x + 34} ${top + 12}Q${x + 50} ${top + 8} ${x + 54} ${top + 20}Q${x + 44} ${top + 14} ${x + 40} ${top + 24}Q${x + 38} ${top + 36} ${x + 74} ${top + 46}Z" class="f-fuji"/>` +
+    [[34, 12], [42, 10], [50, 12], [54, 18], [28, 16], [46, 17]].map(([dx, dy]) => c(x + (dx as number), top + (dy as number), 2.6, 'f-porcelain')).join('') +
+    `<path d="M${x + 58} ${top + 40}L${x + 64} ${top + 30}L${x + 70} ${top + 40}Z" class="f-porcelain"/>` +
+    r(x + 4, top + 44, pw - 8, 3, 'f-sky')
+  const page = (x: number, pic: (x: number) => string, density = 0) => fine(density, r(x, top, pw, ph, 'f-page')) + fine(0, pic(x))
+  o += page(cx - pw - 1, fuji) + page(cx + 1, torii)
   o += fine(2, r(cx - 2, top, 4, ph, 'f-ink'))
   o += fine(0, r(cx - pw - 10, ledge, pw * 2 + 20, 6, 'f-box'))
-  // The turning page: the right page, folded over the spine. It waits, then
-  // swings across; at the loop's end the next page lies under it.
-  // It is a shade grainier than the pages under it, with a shadowed outer
-  // edge, so it shows as it crosses them.
-  const leaf = fine(1, r(cx + 1, top, pw, ph, 'f-page')) + fine(1, lines(cx + 1)) + fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
-  const turning = `<g transform="translate(${-cx} 0)">${leaf}</g>`
+  // The turning page, folded over the spine: it waits, then swings across.
+  // Its paper is a shade grainier and its outer edge shadowed, so it shows
+  // as it crosses the pages under it.
+  const edge = fine(0, r(cx + pw - 3, top, 4, ph, 'f-ink'))
+  const mirrored = (inner: string) => `<g transform="translate(${2 * cx + 2 + pw} 0) scale(-1 1)">${inner}</g>`
+  const front = `<g><animate attributeName="opacity" values="1;1;1;1;1;1;1;0;0;0" calcMode="discrete" ${loop(6)}/>${page(cx + 1, sakura, 1)}</g>`
+  const back = `<g opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0;1;1;1" calcMode="discrete" ${loop(6)}/>${mirrored(page(cx + 1, wave, 1))}</g>`
+  const turning = `<g transform="translate(${-cx} 0)">${front}${back}${edge}</g>`
   o += `<g transform="translate(${cx} 0)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1;.35 1;-.35 1;-1 1" ${loop(6)}/>${turning}</g></g>`
   return o
 }
 
-// A Sargadelos figure: a seated figure in white porcelain, its body banded
-// in cobalt blue lines, zigzags and dots.
+// A Sargadelos figure from its Entroido (carnival) series: a standing
+// drummer in white porcelain painted in cobalt, red and yellow: a tall white
+// mitre edged in red with a cobalt scarab, a moustached face, a yellow
+// jacket with a cobalt scarf and a red drum, white trousers.
 function sargadelos(cx: number, y: number) {
-  let o = fine(0, e(cx, y - 4, 20, 4, 'f-porcelain'))
-  o += fine(0, `<path d="M${cx - 18} ${y - 4}Q${cx - 20} ${y - 40} ${cx - 10} ${y - 54}H${cx + 10}Q${cx + 20} ${y - 40} ${cx + 18} ${y - 4}Z" class="f-porcelain"/>`)
-  o += fine(0, c(cx, y - 66, 11, 'f-porcelain'))
-  o += fine(0, `<path d="M${cx - 11} ${y - 68}Q${cx} ${y - 84} ${cx + 11} ${y - 68}Q${cx} ${y - 74} ${cx - 11} ${y - 68}Z" class="f-cobalt"/>`)
-  o += r(cx - 16, y - 12, 32, 2.4, 'f-cobalt') + r(cx - 13, y - 42, 26, 2.4, 'f-cobalt')
-  o += `<path d="M${cx - 15} ${y - 22}l5 -7l5 7l5 -7l5 7l5 -7l5 7" class="s-cobalt" stroke-width="2" fill="none" stroke-linejoin="round"/>`
-  o += [-8, 0, 8].map(dx => c(cx + dx, y - 34, 1.6, 'f-cobalt')).join('')
-  o += c(cx - 4, y - 65, 1.3, 'f-cobalt') + c(cx + 4, y - 65, 1.3, 'f-cobalt')
+  let o = fine(0, r(cx - 10, y - 30, 20, 30, 'f-porcelain'))
+  o += fine(0, e(cx - 5, y - 3, 5, 3, 'f-cobalt') + e(cx + 5, y - 3, 5, 3, 'f-cobalt'))
+  o += fine(0, r(cx - 1, y - 28, 2, 22, 'f-cobalt'))
+  o += fine(0, `<path d="M${cx - 12} ${y - 31}L${cx - 14} ${y - 54}Q${cx} ${y - 58} ${cx + 14} ${y - 54}L${cx + 12} ${y - 31}Z" class="f-sunny"/>`)
+  o += fine(0, r(cx - 19, y - 54, 6, 18, 'f-sunny') + r(cx + 13, y - 54, 6, 18, 'f-sunny'))
+  o += fine(0, r(cx - 19, y - 38, 6, 3, 'f-racer') + r(cx + 13, y - 38, 6, 3, 'f-racer'))
+  o += fine(0, r(cx - 12, y - 34, 24, 3, 'f-racer'))
+  o += fine(0, e(cx, y - 42, 9, 5, 'f-racer')) + e(cx, y - 43, 5, 2, 'f-porcelain')
+  o += fine(0, `<path d="M${cx - 9} ${y - 57}H${cx + 9}L${cx} ${y - 47}Z" class="f-cobalt"/>`)
+  o += fine(0, r(cx - 8, y - 68, 16, 12, 'f-porcelain') + r(cx - 11, y - 68, 3, 10, 'f-sunny') + r(cx + 8, y - 68, 3, 10, 'f-sunny'))
+  o += c(cx - 3, y - 64, 1.3, 'f-cobalt') + c(cx + 3, y - 64, 1.3, 'f-cobalt') + c(cx - 5, y - 61, 1.4, 'f-racer') + c(cx + 5, y - 61, 1.4, 'f-racer')
+  o += `<path d="M${cx - 4} ${y - 60}q4 -2 8 0" class="s-cobalt" stroke-width="1.4" fill="none"/>`
+  o += fine(0, `<path d="M${cx - 11} ${y - 67}L${cx - 12} ${y - 88}Q${cx} ${y - 102} ${cx + 12} ${y - 88}L${cx + 11} ${y - 67}Z" class="f-porcelain"/>`)
+  o += `<path d="M${cx - 11} ${y - 67}L${cx - 12} ${y - 88}Q${cx} ${y - 102} ${cx + 12} ${y - 88}L${cx + 11} ${y - 67}Z" class="s-racer" stroke-width="2" fill="none"/>`
+  o += fine(0, e(cx, y - 82, 4, 5, 'f-cobalt')) + `<path d="M${cx - 4} ${y - 84}l-4 -3M${cx + 4} ${y - 84}l4 -3M${cx - 4} ${y - 79}l-4 3M${cx + 4} ${y - 79}l4 3" class="s-cobalt" stroke-width="1.2"/>`
   return o
 }
 
@@ -690,16 +720,16 @@ function hoptimist(cx: number, y: number) {
   return o
 }
 
-// A photo-booth strip of a couple, four black-and-white shots one under
+// A photo-booth strip of a couple, three black-and-white shots one under
 // another, in a red frame standing on the board.
 function photoStrip(cx: number, y: number) {
-  let o = fine(0, r(cx - 19, y - 88, 38, 88, 'f-frameRed'))
-  o += fine(0, r(cx - 14, y - 83, 28, 78, 'f-porcelain'))
+  let o = fine(0, r(cx - 19, y - 70, 38, 70, 'f-frameRed'))
+  o += fine(0, r(cx - 14, y - 65, 28, 60, 'f-porcelain'))
   // Each shot: [left head dx, dy], [right head dx, dy]: side by side, leaning
   // in, a kiss, laughing.
-  const shots: [number, number, number, number][] = [[-5, 0, 5, 0], [-4, 1, 4, -1], [-3, 0, 3, 0], [-6, -1, 6, 1]]
+  const shots: [number, number, number, number][] = [[-5, 0, 5, 0], [-3, 0, 3, 0], [-6, -1, 6, 1]]
   shots.forEach(([lx, ly, rx, ry], i) => {
-    const py = y - 81 + i * 19
+    const py = y - 63 + i * 19
     o += r(cx - 12, py, 24, 17, 'f-photoMid')
     for (const [dx, dy] of [[lx, ly], [rx, ry]] as [number, number][]) {
       o += e(cx + dx, py + 16, 5, 3.4, 'f-photoDark')
